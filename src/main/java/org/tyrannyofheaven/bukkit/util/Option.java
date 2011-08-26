@@ -1,7 +1,9 @@
 package org.tyrannyofheaven.bukkit.util;
 
-public @interface Require {
+public @interface Option {
 
     public String[] value();
     
+    public boolean optional() default false;
+
 }

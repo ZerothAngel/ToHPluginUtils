@@ -1,7 +1,7 @@
 package org.tyrannyofheaven.bukkit.util;
 
-public @interface Require {
+public @interface RequireAll {
 
     public String[] value();
-    
+
 }
