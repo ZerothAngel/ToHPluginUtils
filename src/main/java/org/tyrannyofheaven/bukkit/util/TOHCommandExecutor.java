@@ -30,22 +30,31 @@ public class TOHCommandExecutor implements CommandExecutor {
     static {
         // Build set of supported parameter types
         Set<Class<?>> types = new HashSet<Class<?>>();
-        types.add(Server.class);
-        types.add(Plugin.class);
-        types.add(CommandSender.class);
         types.add(String.class);
         types.add(Boolean.class);
+        types.add(Boolean.TYPE);
         types.add(Short.class);
+        types.add(Short.TYPE);
         types.add(Integer.class);
+        types.add(Integer.TYPE);
         types.add(Long.class);
+        types.add(Long.TYPE);
         types.add(Float.class);
+        types.add(Float.TYPE);
         types.add(Double.class);
+        types.add(Double.TYPE);
         supportedParameterTypes = Collections.unmodifiableSet(types);
     }
     public TOHCommandExecutor(Plugin plugin, Object... handlers) {
         this.plugin = plugin;
         this.handlers.addAll(Arrays.asList(handlers));
         processHandlers();
+    }
+
+    // Tests whether or not this option is an argument
+    // e.g. does not start with "-"
+    private boolean isArgument(String optionName) {
+        return !optionName.startsWith("-");
     }
 
     private void processHandlers() {
@@ -56,25 +65,69 @@ public class TOHCommandExecutor implements CommandExecutor {
                 // @Command present?
                 Command command = method.getAnnotation(Command.class);
                 if (command != null) {
-                    List<OptionMetaData> options = new ArrayList<OptionMetaData>();
+                    List<MethodParameter> options = new ArrayList<MethodParameter>();
 
                     // Scan each parameter
                     for (int i = 0; i < method.getParameterTypes().length; i++) {
                         Class<?> paramType = method.getParameterTypes()[i];
                         Annotation[] anns = method.getParameterAnnotations()[i];
+
+                        MethodParameter ma = null;
                         
-                        boolean supported = false;
-                        for (Class<?> supportedType : supportedParameterTypes) {
-                            if (supportedType.isAssignableFrom(paramType)) {
-                                supported = true;
-                                break;
+                        // Special parameter type?
+                        if (paramType.isAssignableFrom(Server.class)) {
+                            ma = new SpecialParameter(SpecialParameter.Type.SERVER);
+                        }
+                        else if (paramType.isAssignableFrom(Plugin.class)) {
+                            ma = new SpecialParameter(SpecialParameter.Type.PLUGIN);
+                        }
+                        else if (paramType.isAssignableFrom(CommandSender.class)) {
+                            ma = new SpecialParameter(SpecialParameter.Type.COMMAND_SENDER);
+                        }
+                        else {
+                            // Supported parameter type?
+                            if (!supportedParameterTypes.contains(paramType)) {
+                                throw new RuntimeException(); // FIXME placeholder
+                            }
+
+                            // Grab the @Option annotation
+                            Option optAnn = null;
+                            for (Annotation ann : anns) {
+                                if (ann instanceof Option) {
+                                    optAnn = (Option)ann;
+                                    break;
+                                }
+                            }
+
+                            if (optAnn == null) {
+                                throw new RuntimeException(); // FIXME placeholder
+                            }
+
+                            ma = new OptionMetaData(optAnn.value(), paramType, optAnn.optional());
+                        }
+                        
+                        options.add(ma);
+                    }
+
+                    // Some validation of option ordering
+                    // Flags (-f, --flag) can appear anywhere.
+                    // Optional arguments must follow positional ones.
+                    List<MethodParameter> reversed = new ArrayList<MethodParameter>(options);
+                    Collections.reverse(reversed); // easier to do this in reverse
+                    boolean positional = false; // true if positional arguments have started
+                    for (MethodParameter ma : reversed) {
+                        if (!(ma instanceof OptionMetaData)) continue;
+                        OptionMetaData omd = (OptionMetaData)ma;
+                        if (isArgument(omd.getName())) {
+                            if (!omd.isOptional()) {
+                                positional = true;
+                            }
+                            else if (positional) {
+                                throw new RuntimeException(); // FIXME placeholder
                             }
                         }
-                        
-                        if (!supported) {
-                            throw new RuntimeException(); // FIXME placeholder
-                        }
                     }
+
                     CommandMetaData cmd = new CommandMetaData(handler, method, options);
                     for (String commandName : command.value()) {
                         if (commandMap.put(commandName, cmd) != null) {
@@ -86,33 +139,90 @@ public class TOHCommandExecutor implements CommandExecutor {
         }
     }
 
-    private Object[] buildMethodArgs(CommandSender sender, Method method, ParsedArgs pa) {
-        List<Object> result = new ArrayList<Object>(method.getParameterTypes().length);
-        for (int i = 0; i < method.getParameterTypes().length; i++) {
-            Class<?> paramType = method.getParameterTypes()[i];
-            Annotation[] anns = method.getParameterAnnotations()[i];
-            if (Server.class.isAssignableFrom(paramType)) {
-                result.add(plugin.getServer());
+    private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa) {
+        List<Object> result = new ArrayList<Object>(cmd.getParameters().size());
+        for (MethodParameter mp : cmd.getParameters()) {
+            if (mp instanceof SpecialParameter) {
+                SpecialParameter sp = (SpecialParameter)mp;
+                if (sp.getType() == SpecialParameter.Type.SERVER) {
+                    result.add(plugin.getServer());
+                }
+                else if (sp.getType() == SpecialParameter.Type.PLUGIN) {
+                    result.add(plugin);
+                }
+                else if (sp.getType() == SpecialParameter.Type.COMMAND_SENDER) {
+                    result.add(sender);
+                }
+                else {
+                    throw new AssertionError();
+                }
             }
-            else if (Plugin.class.isAssignableFrom(paramType)) {
-                result.add(plugin);
-            }
-            else if (CommandSender.class.isAssignableFrom(paramType)) {
-                result.add(sender);
-            }
-            else {
-                Option optAnn = null;
-                for (Annotation ann : anns) {
-                    if (ann instanceof Option) {
-                        optAnn = (Option)ann;
-                        break;
+            else if (mp instanceof OptionMetaData) {
+                OptionMetaData omd = (OptionMetaData)mp;
+                // If Boolean or boolean, treat specially
+                if (omd.getType() == Boolean.class || omd.getType() == Boolean.TYPE) {
+                    if (isArgument(omd.getName())) {
+                        if (pa.hasOption(omd.getName())) {
+                            result.add(Boolean.valueOf(pa.getValue(omd.getName())));
+                        }
+                        else if (!omd.isOptional()) {
+                            // Missing positional argument
+                            throw new RuntimeException(); // FIXME
+                        }
+                        else {
+                            // Flag not specified
+                            result.add(Boolean.FALSE);
+                        }
+                    }
+                    else {
+                        // Flag
+                        result.add(Boolean.valueOf(pa.hasOption(omd.getName())));
                     }
                 }
-                
-                if (optAnn == null) {
-                    // Not annotated. Choke.
-                    throw new RuntimeException(); // FIXME
+                else if (pa.hasOption(omd.getName())) {
+                    String text = pa.getValue(omd.getName());
+                    if (omd.getType() == String.class) {
+                        // Nothing to convert
+                        result.add(text);
+                    }
+                    // Use .valueOf(String) to convert
+                    try {
+                        Method valueOf = omd.getType().getMethod("valueOf", String.class);
+                        Object value = valueOf.invoke(null, text);
+                        result.add(value);
+                    }
+                    catch (SecurityException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    catch (IllegalArgumentException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    catch (NoSuchMethodException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    catch (IllegalAccessException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    catch (InvocationTargetException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 }
+                else {
+                    if (isArgument(omd.getName()) && !omd.isOptional()) {
+                        // Missing positional argument
+                        throw new RuntimeException(); // FIXME
+                    }
+                    
+                    result.add(null);
+                }
+            }
+            else {
+                throw new AssertionError();
             }
         }
         return result.toArray();
@@ -120,11 +230,11 @@ public class TOHCommandExecutor implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
-        CommandMetaData cmd = commandMap.get(command.getName());
+        CommandMetaData cmd = commandMap.get(label);
         if (cmd != null) {
-            ParsedArgs pa = new ParsedArgs();
+            ParsedArgs pa = new ParsedArgs(cmd, args);
             if (pa != null) {
-                Object[] methodArgs = buildMethodArgs(sender, cmd.getMethod(), pa);
+                Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa);
                 try {
                     cmd.getMethod().invoke(cmd.getHandler(), methodArgs);
                 }
