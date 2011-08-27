@@ -10,12 +10,12 @@ public class CommandMetaData {
     
     private final Method method;
 
-    private final List<OptionMetaData> options;
+    private final List<MethodParameter> parameters;
     
-    public CommandMetaData(Object handler, Method method, List<OptionMetaData> options) {
+    public CommandMetaData(Object handler, Method method, List<MethodParameter> options) {
         this.handler = handler;
         this.method = method;
-        this.options = new ArrayList<OptionMetaData>(options);
+        this.parameters = new ArrayList<MethodParameter>(options);
     }
 
     public Object getHandler() {
@@ -26,8 +26,8 @@ public class CommandMetaData {
         return method;
     }
 
-    public List<OptionMetaData> getOptions() {
-        return options;
+    public List<MethodParameter> getParameters() {
+        return parameters;
     }
 
 }
