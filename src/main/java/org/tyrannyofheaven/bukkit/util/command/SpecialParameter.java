@@ -15,7 +15,8 @@ final class SpecialParameter implements MethodParameter {
     enum Type {
         SERVER,
         PLUGIN,
-        COMMAND_SENDER;
+        COMMAND_SENDER,
+        REST;
     }
 
 }

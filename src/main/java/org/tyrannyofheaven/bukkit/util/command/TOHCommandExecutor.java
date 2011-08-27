@@ -45,6 +45,7 @@ public class TOHCommandExecutor implements CommandExecutor {
         types.add(Double.TYPE);
         supportedParameterTypes = Collections.unmodifiableSet(types);
     }
+    
     public TOHCommandExecutor(Plugin plugin, Object... handlers) {
         this.plugin = plugin;
         this.handlers.addAll(Arrays.asList(handlers));
@@ -60,6 +61,8 @@ public class TOHCommandExecutor implements CommandExecutor {
                 Command command = method.getAnnotation(Command.class);
                 if (command != null) {
                     List<MethodParameter> options = new ArrayList<MethodParameter>();
+
+                    boolean hasRest = false;
 
                     // Scan each parameter
                     for (int i = 0; i < method.getParameterTypes().length; i++) {
@@ -79,25 +82,48 @@ public class TOHCommandExecutor implements CommandExecutor {
                             ma = new SpecialParameter(SpecialParameter.Type.COMMAND_SENDER);
                         }
                         else {
-                            // Supported parameter type?
-                            if (!supportedParameterTypes.contains(paramType)) {
-                                throw new RuntimeException(); // FIXME placeholder
-                            }
-
-                            // Grab the @Option annotation
+                            // Grab the @Option/@Rest annotations
                             Option optAnn = null;
+                            Rest restAnn = null;
                             for (Annotation ann : anns) {
                                 if (ann instanceof Option) {
                                     optAnn = (Option)ann;
                                     break;
                                 }
+                                else if (ann instanceof Rest) {
+                                    restAnn = (Rest)ann;
+                                    break;
+                                }
                             }
 
-                            if (optAnn == null) {
+                            if (optAnn == null && restAnn == null) {
                                 throw new RuntimeException(); // FIXME placeholder
                             }
 
-                            ma = new OptionMetaData(optAnn.value(), paramType, optAnn.optional());
+                            // Is it @Rest?
+                            if (restAnn != null) {
+                                if (hasRest) {
+                                    throw new RuntimeException(); // FIXME
+                                }
+
+                                // Is it an array of Strings?
+                                if (!paramType.isArray() || paramType.getComponentType() != String.class) {
+                                    throw new RuntimeException(); // FIXME
+                                }
+
+                                ma = new SpecialParameter(SpecialParameter.Type.REST);
+                                hasRest = true;
+                            }
+                            else {
+                                // Must be @Option
+
+                                // Supported parameter type?
+                                if (!supportedParameterTypes.contains(paramType)) {
+                                    throw new RuntimeException(); // FIXME placeholder
+                                }
+
+                                ma = new OptionMetaData(optAnn.value(), paramType, optAnn.optional());
+                            }
                         }
                         
                         options.add(ma);
@@ -146,6 +172,9 @@ public class TOHCommandExecutor implements CommandExecutor {
                 }
                 else if (sp.getType() == SpecialParameter.Type.COMMAND_SENDER) {
                     result.add(sender);
+                }
+                else if (sp.getType() == SpecialParameter.Type.REST) {
+                    result.add(pa.getRest());
                 }
                 else {
                     throw new AssertionError();

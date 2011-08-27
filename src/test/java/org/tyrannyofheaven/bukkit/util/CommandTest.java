@@ -100,6 +100,9 @@ public class CommandTest {
         Assert.assertFalse(ce.onCommand(dummySender, null, "greet", new String[] { "-o", "foo" }));
         Assert.assertTrue(ce.onCommand(dummySender, null, "greet", new String[] { "-o", "foo", "bar" }));
         Assert.assertTrue(ce.onCommand(dummySender, null, "greet", new String[] { "-o", "foo", "bar", "garply" }));
+        
+        // @Rest
+        Assert.assertTrue(ce.onCommand(dummySender, null, "say", new String[] { "Hello", "there" }));
     }
 
 }
