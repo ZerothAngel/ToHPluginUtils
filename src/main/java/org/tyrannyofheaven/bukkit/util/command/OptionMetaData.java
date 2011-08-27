@@ -2,7 +2,7 @@ package org.tyrannyofheaven.bukkit.util.command;
 
 import java.util.Arrays;
 
-public class OptionMetaData implements MethodParameter {
+final class OptionMetaData implements MethodParameter {
 
     private final String[] names;
 
@@ -30,6 +30,14 @@ public class OptionMetaData implements MethodParameter {
 
     public boolean isOptional() {
         return optional;
+    }
+
+    public boolean isArgument() {
+        return isArgument(getName());
+    }
+
+    public static boolean isArgument(String name) {
+        return !name.startsWith("-");
     }
 
 }

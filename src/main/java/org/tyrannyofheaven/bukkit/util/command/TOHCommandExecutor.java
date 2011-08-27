@@ -51,12 +51,6 @@ public class TOHCommandExecutor implements CommandExecutor {
         processHandlers();
     }
 
-    // Tests whether or not this option is an argument
-    // e.g. does not start with "-"
-    private boolean isArgument(String optionName) {
-        return !optionName.startsWith("-");
-    }
-
     private void processHandlers() {
         for (Object handler : handlers) {
             Class<?> clazz = handler.getClass();
@@ -118,7 +112,7 @@ public class TOHCommandExecutor implements CommandExecutor {
                     for (MethodParameter ma : reversed) {
                         if (!(ma instanceof OptionMetaData)) continue;
                         OptionMetaData omd = (OptionMetaData)ma;
-                        if (isArgument(omd.getName())) {
+                        if (omd.isArgument()) {
                             if (!omd.isOptional()) {
                                 positional = true;
                             }
@@ -161,9 +155,9 @@ public class TOHCommandExecutor implements CommandExecutor {
                 OptionMetaData omd = (OptionMetaData)mp;
                 // If Boolean or boolean, treat specially
                 if (omd.getType() == Boolean.class || omd.getType() == Boolean.TYPE) {
-                    if (isArgument(omd.getName())) {
+                    if (omd.isArgument()) {
                         if (pa.hasOption(omd.getName())) {
-                            result.add(Boolean.valueOf(pa.getValue(omd.getName())));
+                            result.add(Boolean.valueOf(pa.getOption(omd.getName())));
                         }
                         else if (!omd.isOptional()) {
                             // Missing positional argument
@@ -180,40 +174,42 @@ public class TOHCommandExecutor implements CommandExecutor {
                     }
                 }
                 else if (pa.hasOption(omd.getName())) {
-                    String text = pa.getValue(omd.getName());
+                    String text = pa.getOption(omd.getName());
                     if (omd.getType() == String.class) {
                         // Nothing to convert
                         result.add(text);
                     }
-                    // Use .valueOf(String) to convert
-                    try {
-                        Method valueOf = omd.getType().getMethod("valueOf", String.class);
-                        Object value = valueOf.invoke(null, text);
-                        result.add(value);
-                    }
-                    catch (SecurityException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (IllegalArgumentException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (NoSuchMethodException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (IllegalAccessException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    catch (InvocationTargetException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                    else {
+                        // Use .valueOf(String) to convert
+                        try {
+                            Method valueOf = omd.getType().getMethod("valueOf", String.class);
+                            Object value = valueOf.invoke(null, text);
+                            result.add(value);
+                        }
+                        catch (SecurityException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                        catch (IllegalArgumentException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                        catch (NoSuchMethodException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                        catch (IllegalAccessException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                        catch (InvocationTargetException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
                     }
                 }
                 else {
-                    if (isArgument(omd.getName()) && !omd.isOptional()) {
+                    if (omd.isArgument() && !omd.isOptional()) {
                         // Missing positional argument
                         throw new RuntimeException(); // FIXME
                     }
@@ -232,7 +228,7 @@ public class TOHCommandExecutor implements CommandExecutor {
     public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
         CommandMetaData cmd = commandMap.get(label);
         if (cmd != null) {
-            ParsedArgs pa = new ParsedArgs(cmd, args);
+            ParsedArgs pa = ParsedArgs.parse(cmd, args);
             if (pa != null) {
                 Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa);
                 try {

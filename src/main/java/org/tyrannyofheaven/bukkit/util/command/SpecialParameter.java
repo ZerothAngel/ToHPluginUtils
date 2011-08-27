@@ -1,6 +1,6 @@
 package org.tyrannyofheaven.bukkit.util.command;
 
-public class SpecialParameter implements MethodParameter {
+final class SpecialParameter implements MethodParameter {
 
     private final Type type;
     

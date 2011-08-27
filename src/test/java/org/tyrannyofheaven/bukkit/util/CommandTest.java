@@ -2,6 +2,8 @@ package org.tyrannyofheaven.bukkit.util;
 
 import java.util.Set;
 
+import junit.framework.Assert;
+
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
@@ -85,10 +87,19 @@ public class CommandTest {
             }
         };
         TOHCommandExecutor ce = new TOHCommandExecutor(dummyPlugin, new TestHandler());
-        ce.onCommand(dummySender, null, "hello", new String[] {});
-        ce.onCommand(dummySender, null, "hello", new String[] { "-f" });
-        ce.onCommand(dummySender, null, "greetings", new String[] {});
-        ce.onCommand(dummySender, null, "greetings", new String[] { "-f" });
+        
+        // No positional params, boolean flag
+        Assert.assertTrue(ce.onCommand(dummySender, null, "hello", new String[] {}));
+        Assert.assertTrue(ce.onCommand(dummySender, null, "hello", new String[] { "-f" }));
+        Assert.assertTrue(ce.onCommand(dummySender, null, "greetings", new String[] {}));
+        Assert.assertTrue(ce.onCommand(dummySender, null, "greetings", new String[] { "-f" }));
+        
+        // Required positional param, flag with value
+        Assert.assertFalse(ce.onCommand(dummySender, null, "greet", new String[] { }));
+        Assert.assertFalse(ce.onCommand(dummySender, null, "greet", new String[] { "-o" }));
+        Assert.assertFalse(ce.onCommand(dummySender, null, "greet", new String[] { "-o", "foo" }));
+        Assert.assertTrue(ce.onCommand(dummySender, null, "greet", new String[] { "-o", "foo", "bar" }));
+        Assert.assertTrue(ce.onCommand(dummySender, null, "greet", new String[] { "-o", "foo", "bar", "garply" }));
     }
 
 }

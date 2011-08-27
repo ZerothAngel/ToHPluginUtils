@@ -14,4 +14,11 @@ public class TestHandler {
             sender.sendMessage(ChatColor.YELLOW + "With flag!");
     }
 
+    @Command("greet")
+    public void greet(CommandSender sender, @Option("name") String name, @Option("-o") String opt) {
+        sender.sendMessage(ChatColor.GREEN + "Hello, " + name);
+        if (opt != null)
+            sender.sendMessage(ChatColor.YELLOW + "With option = " + opt + "!");
+    }
+
 }
