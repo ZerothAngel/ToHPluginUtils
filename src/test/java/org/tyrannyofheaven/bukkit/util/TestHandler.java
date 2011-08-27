@@ -4,6 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.tyrannyofheaven.bukkit.util.command.Command;
 import org.tyrannyofheaven.bukkit.util.command.Option;
+import org.tyrannyofheaven.bukkit.util.command.Rest;
 
 public class TestHandler {
 
@@ -19,6 +20,17 @@ public class TestHandler {
         sender.sendMessage(ChatColor.GREEN + "Hello, " + name);
         if (opt != null)
             sender.sendMessage(ChatColor.YELLOW + "With option = " + opt + "!");
+    }
+
+    @Command("say")
+    public void say(CommandSender sender, @Rest String[] args) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < args.length; i++) {
+            sb.append(args[i]);
+            if (i < (args.length - 1))
+                sb.append(' ');
+        }
+        sender.sendMessage(ChatColor.GREEN + sb.toString());
     }
 
 }

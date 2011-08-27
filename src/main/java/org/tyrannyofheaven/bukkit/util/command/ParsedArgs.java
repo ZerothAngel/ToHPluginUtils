@@ -1,5 +1,6 @@
 package org.tyrannyofheaven.bukkit.util.command;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -8,8 +9,11 @@ final class ParsedArgs {
 
     private final Map<String, String> options;
 
-    private ParsedArgs(Map<String, String> options) {
+    private final String[] rest;
+
+    private ParsedArgs(Map<String, String> options, String[] rest) {
         this.options = options;
+        this.rest = rest;
     }
 
     private static OptionMetaData getOption(String flag, Set<OptionMetaData> options) {
@@ -81,7 +85,7 @@ final class ParsedArgs {
             }
         }
 
-        return new ParsedArgs(options);
+        return new ParsedArgs(options, Arrays.copyOfRange(args, pos, args.length));
     }
 
     public boolean hasOption(String name) {
@@ -91,6 +95,10 @@ final class ParsedArgs {
 
     public String getOption(String name) {
         return options.get(name);
+    }
+
+    public String[] getRest() {
+        return Arrays.copyOf(rest, rest.length);
     }
 
 }
