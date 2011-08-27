@@ -10,6 +10,7 @@ import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.Test;
+import org.tyrannyofheaven.bukkit.util.command.TOHCommandExecutor;
 
 public class CommandTest {
 

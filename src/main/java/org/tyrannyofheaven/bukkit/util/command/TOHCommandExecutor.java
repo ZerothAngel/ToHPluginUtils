@@ -1,4 +1,4 @@
-package org.tyrannyofheaven.bukkit.util;
+package org.tyrannyofheaven.bukkit.util.command;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;

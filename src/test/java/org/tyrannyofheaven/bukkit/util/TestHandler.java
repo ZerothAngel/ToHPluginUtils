@@ -2,6 +2,8 @@ package org.tyrannyofheaven.bukkit.util;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.tyrannyofheaven.bukkit.util.command.Command;
+import org.tyrannyofheaven.bukkit.util.command.Option;
 
 public class TestHandler {
 

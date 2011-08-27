@@ -1,4 +1,4 @@
-package org.tyrannyofheaven.bukkit.util;
+package org.tyrannyofheaven.bukkit.util.command;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
