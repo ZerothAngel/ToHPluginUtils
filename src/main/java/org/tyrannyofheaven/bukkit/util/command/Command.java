@@ -1,4 +1,4 @@
-package org.tyrannyofheaven.bukkit.util;
+package org.tyrannyofheaven.bukkit.util.command;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -8,11 +8,9 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.PARAMETER)
-public @interface Option {
+@Target(ElementType.METHOD)
+public @interface Command {
 
     public String[] value();
-    
-    public boolean optional() default false;
 
 }

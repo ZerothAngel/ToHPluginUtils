@@ -1,4 +1,4 @@
-package org.tyrannyofheaven.bukkit.util;
+package org.tyrannyofheaven.bukkit.util.command;
 
 public class SpecialParameter implements MethodParameter {
 
