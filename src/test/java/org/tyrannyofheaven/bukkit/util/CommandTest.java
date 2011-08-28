@@ -12,7 +12,7 @@ import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.Test;
-import org.tyrannyofheaven.bukkit.util.command.TOHCommandExecutor;
+import org.tyrannyofheaven.bukkit.util.command.HandlerExecutor;
 
 public class CommandTest {
 
@@ -86,23 +86,27 @@ public class CommandTest {
             public void setOp(boolean value) {
             }
         };
-        TOHCommandExecutor ce = new TOHCommandExecutor(dummyPlugin, new TestHandler());
+        HandlerExecutor ce = new HandlerExecutor(dummyPlugin, new TestHandler());
         
         // No positional params, boolean flag
-        Assert.assertTrue(ce.onCommand(dummySender, null, "hello", new String[] {}));
-        Assert.assertTrue(ce.onCommand(dummySender, null, "hello", new String[] { "-f" }));
-        Assert.assertTrue(ce.onCommand(dummySender, null, "greetings", new String[] {}));
-        Assert.assertTrue(ce.onCommand(dummySender, null, "greetings", new String[] { "-f" }));
+        Assert.assertTrue(ce.execute(dummySender, "hello", new String[] {}));
+        Assert.assertTrue(ce.execute(dummySender, "hello", new String[] { "-f" }));
+        Assert.assertTrue(ce.execute(dummySender, "greetings", new String[] {}));
+        Assert.assertTrue(ce.execute(dummySender, "greetings", new String[] { "-f" }));
         
         // Required positional param, flag with value
-        Assert.assertFalse(ce.onCommand(dummySender, null, "greet", new String[] { }));
-        Assert.assertFalse(ce.onCommand(dummySender, null, "greet", new String[] { "-o" }));
-        Assert.assertFalse(ce.onCommand(dummySender, null, "greet", new String[] { "-o", "foo" }));
-        Assert.assertTrue(ce.onCommand(dummySender, null, "greet", new String[] { "-o", "foo", "bar" }));
-        Assert.assertTrue(ce.onCommand(dummySender, null, "greet", new String[] { "-o", "foo", "bar", "garply" }));
+        Assert.assertFalse(ce.execute(dummySender, "greet", new String[] { }));
+        Assert.assertFalse(ce.execute(dummySender, "greet", new String[] { "-o" }));
+        Assert.assertFalse(ce.execute(dummySender, "greet", new String[] { "-o", "foo" }));
+        Assert.assertTrue(ce.execute(dummySender, "greet", new String[] { "-o", "foo", "bar" }));
+        Assert.assertTrue(ce.execute(dummySender, "greet", new String[] { "-o", "foo", "bar", "garply" }));
         
         // @Rest
-        Assert.assertTrue(ce.onCommand(dummySender, null, "say", new String[] { "Hello", "there" }));
+        Assert.assertTrue(ce.execute(dummySender, "say", new String[] { "Hello", "there" }));
+        
+        // @SubCommand
+        Assert.assertFalse(ce.execute(dummySender, "foo", new String[] { }));
+        Assert.assertTrue(ce.execute(dummySender, "foo", new String[] { "hello" }));
     }
 
 }

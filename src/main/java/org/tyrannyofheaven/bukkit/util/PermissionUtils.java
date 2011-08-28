@@ -2,6 +2,7 @@ package org.tyrannyofheaven.bukkit.util;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permissible;
 
 public class PermissionUtils {
 
@@ -10,13 +11,13 @@ public class PermissionUtils {
         throw new AssertionError();
     }
 
-    public static void requirePermission(Player player, String permission) {
+    public static void requirePermission(Permissible player, String permission) {
         if (!player.hasPermission(permission)) {
             throw new PermissionException(permission);
         }
     }
 
-    public static void requireAllPermissions(Player player, String... permissions) {
+    public static void requireAllPermissions(Permissible player, String... permissions) {
         for (String permission : permissions) {
             if (!player.hasPermission(permission)) {
                 throw new PermissionException(true, permissions);
@@ -24,7 +25,7 @@ public class PermissionUtils {
         }
     }
 
-    public static void requireOnePermission(Player player, String... permissions) {
+    public static void requireOnePermission(Permissible player, String... permissions) {
         boolean found = false;
         for (String permission : permissions) {
             if (player.hasPermission(permission)) {

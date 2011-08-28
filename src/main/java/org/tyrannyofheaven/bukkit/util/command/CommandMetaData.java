@@ -7,11 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-final class CommandMetaData {
-
-    private final Object handler;
-    
-    private final Method method;
+class CommandMetaData extends SubCommandMetaData {
 
     private final List<MethodParameter> parameters;
 
@@ -20,8 +16,7 @@ final class CommandMetaData {
     private final List<OptionMetaData> positionalArguments;
     
     public CommandMetaData(Object handler, Method method, List<MethodParameter> options) {
-        this.handler = handler;
-        this.method = method;
+        super(handler, method);
         this.parameters = Collections.unmodifiableList(new ArrayList<MethodParameter>(options));
         
         Set<OptionMetaData> flagOptions = new HashSet<OptionMetaData>();
@@ -40,14 +35,6 @@ final class CommandMetaData {
         
         this.flagOptions = Collections.unmodifiableSet(flagOptions);
         this.positionalArguments = Collections.unmodifiableList(positionalArguments);
-    }
-
-    public Object getHandler() {
-        return handler;
-    }
-
-    public Method getMethod() {
-        return method;
     }
 
     public List<MethodParameter> getParameters() {
