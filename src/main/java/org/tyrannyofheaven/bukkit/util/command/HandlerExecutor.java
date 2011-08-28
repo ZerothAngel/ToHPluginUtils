@@ -11,22 +11,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import org.bukkit.Server;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
-public class TOHCommandExecutor implements CommandExecutor {
+public class HandlerExecutor {
 
+    private static final Set<Class<?>> supportedParameterTypes;
+    
     private final Plugin plugin;
 
     private final List<Object> handlers = new ArrayList<Object>();
 
-    private final Map<String, CommandMetaData> commandMap = new HashMap<String, CommandMetaData>();
+    private final Map<String, SubCommandMetaData> commandMap = new HashMap<String, SubCommandMetaData>();
 
-    private static final Set<Class<?>> supportedParameterTypes;
-    
+    private final Map<SubCommandMetaData, HandlerExecutor> subCommandMap = new WeakHashMap<SubCommandMetaData, HandlerExecutor>();
+
     static {
         // Build set of supported parameter types
         Set<Class<?>> types = new HashSet<Class<?>>();
@@ -46,7 +48,7 @@ public class TOHCommandExecutor implements CommandExecutor {
         supportedParameterTypes = Collections.unmodifiableSet(types);
     }
     
-    public TOHCommandExecutor(Plugin plugin, Object... handlers) {
+    public HandlerExecutor(Plugin plugin, Object... handlers) {
         this.plugin = plugin;
         this.handlers.addAll(Arrays.asList(handlers));
         processHandlers();
@@ -57,9 +59,14 @@ public class TOHCommandExecutor implements CommandExecutor {
             Class<?> clazz = handler.getClass();
             // Scan each method
             for (Method method : clazz.getMethods()) {
-                // @Command present?
+                // @Command or @SubCommand present?
                 Command command = method.getAnnotation(Command.class);
-                if (command != null) {
+                SubCommand subCommand = method.getAnnotation(SubCommand.class);
+                if (command != null && subCommand != null) {
+                    throw new RuntimeException(); // FIXME etc
+                }
+                else if (command != null) {
+                    // Handle @Command
                     List<MethodParameter> options = new ArrayList<MethodParameter>();
 
                     boolean hasRest = false;
@@ -151,6 +158,18 @@ public class TOHCommandExecutor implements CommandExecutor {
                     CommandMetaData cmd = new CommandMetaData(handler, method, options);
                     for (String commandName : command.value()) {
                         if (commandMap.put(commandName, cmd) != null) {
+                            // TODO warn about dupe
+                        }
+                    }
+                }
+                else if (subCommand != null) {
+                    // Handle @SubCommand
+                    if (method.getParameterTypes().length != 0) {
+                        throw new RuntimeException(); // FIXME
+                    }
+                    SubCommandMetaData scmd = new SubCommandMetaData(handler, method);
+                    for (String commandName : subCommand.value()) {
+                        if (commandMap.put(commandName, scmd) != null) {
                             // TODO warn about dupe
                         }
                     }
@@ -253,10 +272,11 @@ public class TOHCommandExecutor implements CommandExecutor {
         return result.toArray();
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
-        CommandMetaData cmd = commandMap.get(label);
-        if (cmd != null) {
+    public boolean execute(CommandSender sender, String name, String[] args) {
+        SubCommandMetaData scmd = commandMap.get(name);
+        if (scmd instanceof CommandMetaData) {
+            // Handle top-level command
+            CommandMetaData cmd = (CommandMetaData)scmd;
             ParsedArgs pa = ParsedArgs.parse(cmd, args);
             if (pa != null) {
                 Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa);
@@ -271,6 +291,43 @@ public class TOHCommandExecutor implements CommandExecutor {
                 }
                 catch (InvocationTargetException e) {
                     e.printStackTrace();
+                }
+                return true;
+            }
+        }
+        else if (scmd != null) {
+            // Handle a sub-command
+            if (args.length >= 1) {
+                String subName = args[0];
+                args = Arrays.copyOfRange(args, 1, args.length);
+
+                // Execute method to grab handler
+                Object handler = null;
+                try {
+                    handler = scmd.getMethod().invoke(scmd.getHandler(), (Object[])null);
+                }
+                catch (IllegalArgumentException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                catch (IllegalAccessException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                catch (InvocationTargetException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                if (handler != null) {
+                    // Check HandlerExecutor cache
+                    HandlerExecutor he = subCommandMap.get(scmd);
+                    if (he == null) {
+                        // No HandlerExecutor yet, create a new one
+                        he = new HandlerExecutor(plugin, handler);
+                        subCommandMap.put(scmd, he); // FIXME thread safety?
+                    }
+                    // Chain to next handler
+                    return he.execute(sender, subName, args);
                 }
                 return true;
             }
