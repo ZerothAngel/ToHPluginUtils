@@ -11,6 +11,11 @@ final class OptionMetaData implements MethodParameter {
     private final boolean optional;
     
     public OptionMetaData(String[] names, Class<?> type, boolean optional) {
+        if (names == null || names.length == 0)
+            throw new IllegalArgumentException("names must be given");
+        if (type == null)
+            throw new IllegalArgumentException("type cannot be null");
+
         this.names = Arrays.copyOf(names, names.length);
         this.type = type;
         this.optional = optional;

@@ -12,6 +12,12 @@ final class ParsedArgs {
     private final String[] rest;
 
     private ParsedArgs(Map<String, String> options, String[] rest) {
+        if (options == null)
+            throw new IllegalArgumentException("options cannot be null");
+
+        if (rest == null)
+            rest = new String[0];
+
         this.options = options;
         this.rest = rest;
     }
@@ -28,6 +34,12 @@ final class ParsedArgs {
     }
 
     public static ParsedArgs parse(CommandMetaData cmd, String[] args) {
+        if (cmd == null)
+            throw new IllegalArgumentException("cmd cannot be null");
+
+        if (args == null)
+            args = new String[0];
+
         Map<String, String> options = new HashMap<String, String>();
 
         int pos = 0;
@@ -89,11 +101,17 @@ final class ParsedArgs {
     }
 
     public boolean hasOption(String name) {
+        if (name == null || name.trim().length() == 0)
+            throw new IllegalArgumentException("name must have a value");
+
         // TODO collapse into getValue
         return options.containsKey(name);
     }
 
     public String getOption(String name) {
+        if (name == null || name.trim().length() == 0)
+            throw new IllegalArgumentException("name must have a value");
+
         return options.get(name);
     }
 

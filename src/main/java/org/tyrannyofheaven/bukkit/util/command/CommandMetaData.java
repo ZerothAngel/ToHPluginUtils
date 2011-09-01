@@ -17,6 +17,10 @@ class CommandMetaData extends SubCommandMetaData {
     
     public CommandMetaData(Object handler, Method method, List<MethodParameter> options, String[] permissions, boolean requireAll) {
         super(handler, method, permissions, requireAll);
+
+        if (options == null)
+            options = Collections.emptyList();
+
         this.parameters = Collections.unmodifiableList(new ArrayList<MethodParameter>(options));
         
         Set<OptionMetaData> flagOptions = new HashSet<OptionMetaData>();
