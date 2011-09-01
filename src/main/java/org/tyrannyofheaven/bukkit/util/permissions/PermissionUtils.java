@@ -4,6 +4,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permissible;
 
+/**
+ * Utilities for checking permissions and displaying error messages.
+ * 
+ * @author asaddi
+ */
 public class PermissionUtils {
 
     private PermissionUtils() {
@@ -11,29 +16,47 @@ public class PermissionUtils {
         throw new AssertionError();
     }
 
-    public static void requirePermission(Permissible player, String permission) {
+    /**
+     * Require a single permission.
+     * 
+     * @param permissible the permissible to check
+     * @param permission the name of the permission
+     */
+    public static void requirePermission(Permissible permissible, String permission) {
         if (permission == null || permission.trim().length() == 0)
             throw new IllegalArgumentException("permission must have a value");
 
-        if (!player.hasPermission(permission)) {
+        if (!permissible.hasPermission(permission)) {
             throw new PermissionException(permission);
         }
     }
 
-    public static void requireAllPermissions(Permissible player, String... permissions) {
+    /**
+     * Require multiple permissions, all required.
+     * 
+     * @param permissible the permissible to check
+     * @param permissions the names of the permissions
+     */
+    public static void requireAllPermissions(Permissible permissible, String... permissions) {
         if (permissions == null || permissions.length == 0) return;
 
         for (String permission : permissions) {
             if (permission == null || permission.trim().length() == 0)
                 throw new IllegalArgumentException("permission must have a value");
 
-            if (!player.hasPermission(permission)) {
+            if (!permissible.hasPermission(permission)) {
                 throw new PermissionException(true, permissions);
             }
         }
     }
 
-    public static void requireOnePermission(Permissible player, String... permissions) {
+    /**
+     * Require one of multiple permissions.
+     * 
+     * @param permissible the permissible to check
+     * @param permissions the names of the permissions
+     */
+    public static void requireOnePermission(Permissible permissible, String... permissions) {
         if (permissions == null || permissions.length == 0) return;
 
         boolean found = false;
@@ -41,7 +64,7 @@ public class PermissionUtils {
             if (permission == null || permission.trim().length() == 0)
                 throw new IllegalArgumentException("permission must have a value");
 
-            if (player.hasPermission(permission)) {
+            if (permissible.hasPermission(permission)) {
                 found = true;
                 break;
             }
@@ -51,6 +74,12 @@ public class PermissionUtils {
         }
     }
 
+    /**
+     * Display a helpful error message when a permission check fails.
+     * 
+     * @param sender the command sender
+     * @param permissionException the associated PermissionException
+     */
     public static void displayPermissionException(CommandSender sender, PermissionException permissionException) {
         if (sender == null)
             throw new IllegalArgumentException("sender cannot be null");

@@ -1,5 +1,11 @@
 package org.tyrannyofheaven.bukkit.util.command;
 
+/**
+ * Exception thrown when there is an error (usually a programming error) in a
+ * command handler.
+ * 
+ * @author asaddi
+ */
 public class CommandException extends RuntimeException {
 
     private static final long serialVersionUID = -4453503398619490556L;
