@@ -3,6 +3,7 @@ package org.tyrannyofheaven.bukkit.util;
 import org.bukkit.command.CommandSender;
 import org.tyrannyofheaven.bukkit.util.command.Command;
 import org.tyrannyofheaven.bukkit.util.command.Option;
+import org.tyrannyofheaven.bukkit.util.command.Require;
 import org.tyrannyofheaven.bukkit.util.command.Rest;
 import org.tyrannyofheaven.bukkit.util.command.SubCommand;
 
@@ -48,6 +49,12 @@ public class MyHandler {
             sender.sendMessage("Hello from the foo sub-command!");
         }
 
+    }
+
+    @Command("secret")
+    @Require("foo.secret")
+    public void secret(CommandSender sender) {
+        sender.sendMessage("Spike has a crush on Rarity");
     }
 
 }

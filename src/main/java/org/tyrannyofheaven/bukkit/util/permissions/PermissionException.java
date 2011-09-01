@@ -1,4 +1,4 @@
-package org.tyrannyofheaven.bukkit.util;
+package org.tyrannyofheaven.bukkit.util.permissions;
 
 import java.util.ArrayList;
 import java.util.Arrays;

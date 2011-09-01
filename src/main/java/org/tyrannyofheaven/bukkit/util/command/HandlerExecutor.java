@@ -16,6 +16,7 @@ import java.util.WeakHashMap;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
+import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
 
 public class HandlerExecutor {
 
@@ -59,9 +60,19 @@ public class HandlerExecutor {
             Class<?> clazz = handler.getClass();
             // Scan each method
             for (Method method : clazz.getMethods()) {
+                // Handle @Require if present
+                Require require = method.getAnnotation(Require.class);
+                String[] permissions = new String[0];
+                boolean requireAll = false;
+                if (require != null) {
+                    permissions = require.value();
+                    requireAll = require.all();
+                }
+
                 // @Command or @SubCommand present?
                 Command command = method.getAnnotation(Command.class);
                 SubCommand subCommand = method.getAnnotation(SubCommand.class);
+
                 if (command != null && subCommand != null) {
                     throw new RuntimeException(); // FIXME etc
                 }
@@ -69,7 +80,7 @@ public class HandlerExecutor {
                     // Handle @Command
                     List<MethodParameter> options = new ArrayList<MethodParameter>();
 
-                    boolean hasRest = false;
+                    boolean hasRest = false; // There can be only one!
 
                     // Scan each parameter
                     for (int i = 0; i < method.getParameterTypes().length; i++) {
@@ -155,7 +166,7 @@ public class HandlerExecutor {
                         }
                     }
 
-                    CommandMetaData cmd = new CommandMetaData(handler, method, options);
+                    CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll);
                     for (String commandName : command.value()) {
                         if (commandMap.put(commandName, cmd) != null) {
                             // TODO warn about dupe
@@ -167,7 +178,7 @@ public class HandlerExecutor {
                     if (method.getParameterTypes().length != 0) {
                         throw new RuntimeException(); // FIXME
                     }
-                    SubCommandMetaData scmd = new SubCommandMetaData(handler, method);
+                    SubCommandMetaData scmd = new SubCommandMetaData(handler, method, permissions, requireAll);
                     for (String commandName : subCommand.value()) {
                         if (commandMap.put(commandName, scmd) != null) {
                             // TODO warn about dupe
@@ -274,9 +285,19 @@ public class HandlerExecutor {
 
     public boolean execute(CommandSender sender, String name, String[] args) {
         SubCommandMetaData scmd = commandMap.get(name);
+
+        // Check permissions
+        if (scmd.isRequireAll()) {
+            PermissionUtils.requireAllPermissions(sender, scmd.getPermissions());
+        }
+        else {
+            PermissionUtils.requireOnePermission(sender, scmd.getPermissions());
+        }
+
         if (scmd instanceof CommandMetaData) {
             // Handle top-level command
             CommandMetaData cmd = (CommandMetaData)scmd;
+            
             ParsedArgs pa = ParsedArgs.parse(cmd, args);
             if (pa != null) {
                 Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa);
