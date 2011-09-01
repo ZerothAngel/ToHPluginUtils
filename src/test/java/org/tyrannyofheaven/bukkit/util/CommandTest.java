@@ -27,6 +27,7 @@ public class CommandTest {
             public void onEnable() {
             }
         };
+        final StringBuilder out = new StringBuilder();
         CommandSender dummySender = new CommandSender() {
             @Override
             public Server getServer() {
@@ -34,7 +35,8 @@ public class CommandTest {
             }
             @Override
             public void sendMessage(String message) {
-                System.out.println(message);
+                out.append(message);
+                out.append('\n');
             }
             @Override
             public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) {
@@ -86,27 +88,41 @@ public class CommandTest {
             public void setOp(boolean value) {
             }
         };
-        HandlerExecutor ce = new HandlerExecutor(dummyPlugin, new TestHandler());
+        HandlerExecutor ce = new HandlerExecutor(dummyPlugin, new MyHandler());
         
         // No positional params, boolean flag
         Assert.assertTrue(ce.execute(dummySender, "hello", new String[] {}));
+        Assert.assertEquals("Hello World!\n", out.toString()); out.delete(0, out.length());
+
         Assert.assertTrue(ce.execute(dummySender, "hello", new String[] { "-f" }));
+        Assert.assertEquals("Hello World!\nWith flag!\n", out.toString()); out.delete(0, out.length());
+
         Assert.assertTrue(ce.execute(dummySender, "greetings", new String[] {}));
+        Assert.assertEquals("Hello World!\n", out.toString()); out.delete(0, out.length());
+
         Assert.assertTrue(ce.execute(dummySender, "greetings", new String[] { "-f" }));
+        Assert.assertEquals("Hello World!\nWith flag!\n", out.toString()); out.delete(0, out.length());
         
         // Required positional param, flag with value
         Assert.assertFalse(ce.execute(dummySender, "greet", new String[] { }));
         Assert.assertFalse(ce.execute(dummySender, "greet", new String[] { "-o" }));
         Assert.assertFalse(ce.execute(dummySender, "greet", new String[] { "-o", "foo" }));
+
         Assert.assertTrue(ce.execute(dummySender, "greet", new String[] { "-o", "foo", "bar" }));
+        Assert.assertEquals("Hello, bar\nWith option = foo!\n", out.toString()); out.delete(0, out.length());
+
         Assert.assertTrue(ce.execute(dummySender, "greet", new String[] { "-o", "foo", "bar", "garply" }));
+        Assert.assertEquals("Hello, bar\nWith option = foo!\n", out.toString()); out.delete(0, out.length());
         
         // @Rest
         Assert.assertTrue(ce.execute(dummySender, "say", new String[] { "Hello", "there" }));
+        Assert.assertEquals("Hello there\n", out.toString()); out.delete(0, out.length());
         
         // @SubCommand
         Assert.assertFalse(ce.execute(dummySender, "foo", new String[] { }));
+
         Assert.assertTrue(ce.execute(dummySender, "foo", new String[] { "hello" }));
+        Assert.assertEquals("Hello from the foo sub-command!\n", out.toString()); out.delete(0, out.length());
     }
 
 }
