@@ -127,11 +127,19 @@ public class CommandTest {
 
         Assert.assertTrue(ce.execute(dummySender, "greet", new String[] { "-o", "foo", "bar", "garply" }));
         Assert.assertEquals("Hello, bar\nWith option = foo!\n", out.toString()); out.delete(0, out.length());
-        
+
+        // Positional argument that starts with -
+        Assert.assertTrue(ce.execute(dummySender, "greet", new String[] { "--", "-garply" }));
+        Assert.assertEquals("Hello, -garply\n", out.toString()); out.delete(0, out.length());
+
         // @Rest
         Assert.assertTrue(ce.execute(dummySender, "say", new String[] { "Hello", "there" }));
         Assert.assertEquals("Hello there\n", out.toString()); out.delete(0, out.length());
         
+        // No flags, so should not parse -Hello as one.
+        Assert.assertTrue(ce.execute(dummySender, "say", new String[] { "-Hello", "there" }));
+        Assert.assertEquals("-Hello there\n", out.toString()); out.delete(0, out.length());
+
         // @SubCommand
         Assert.assertFalse(ce.execute(dummySender, "foo", new String[0]));
 

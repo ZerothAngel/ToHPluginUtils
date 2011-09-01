@@ -61,10 +61,13 @@ final class ParsedArgs {
         // Parse flags
         while (pos < args.length) {
             String arg = args[pos];
-            if (OptionMetaData.isArgument(arg)) {
+            if ("--".equals(arg)) {
+                // explicit end of flags
+                pos++;
+                break;
+            }
+            else if (OptionMetaData.isArgument(arg) || cmd.getFlagOptions().isEmpty()) {
                 // positional argument
-                // FIXME There's something wrong about this...
-                // Should positional arguments that start with '-' be allowed?
                 break;
             }
             else {
