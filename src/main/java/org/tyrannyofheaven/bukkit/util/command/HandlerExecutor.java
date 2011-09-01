@@ -18,6 +18,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
 
+/**
+ * The main class that drives annotation-driven command parsing.
+ * 
+ * @author zerothangel
+ */
 public class HandlerExecutor {
 
     private static final Set<Class<?>> supportedParameterTypes;
@@ -51,6 +56,12 @@ public class HandlerExecutor {
         supportedParameterTypes = Collections.unmodifiableSet(types);
     }
     
+    /**
+     * Create a HandlerExecutor instance.
+     * 
+     * @param plugin the associated plugin
+     * @param handlers handler objects
+     */
     public HandlerExecutor(Plugin plugin, Object... handlers) {
         if (plugin == null)
             throw new IllegalArgumentException("plugin cannot be null");
@@ -62,6 +73,8 @@ public class HandlerExecutor {
         processHandlers();
     }
 
+    // Analyze each handler object and create/store the appropriate metadata
+    // classes.
     private void processHandlers() {
         for (Object handler : handlers) {
             Class<?> clazz = handler.getClass();
@@ -197,6 +210,8 @@ public class HandlerExecutor {
         }
     }
 
+    // Given parsed arguments and metadata, create an argument list suitable
+    // for reflective invoke.
     private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa) {
         List<Object> result = new ArrayList<Object>(cmd.getParameters().size());
         for (MethodParameter mp : cmd.getParameters()) {
@@ -220,11 +235,13 @@ public class HandlerExecutor {
             }
             else if (mp instanceof OptionMetaData) {
                 OptionMetaData omd = (OptionMetaData)mp;
+                String text = pa.getOption(omd.getName());
+
                 // If Boolean or boolean, treat specially
                 if (omd.getType() == Boolean.class || omd.getType() == Boolean.TYPE) {
                     if (omd.isArgument()) {
-                        if (pa.hasOption(omd.getName())) {
-                            result.add(Boolean.valueOf(pa.getOption(omd.getName())));
+                        if (text != null) {
+                            result.add(Boolean.valueOf(text));
                         }
                         else if (!omd.isOptional()) {
                             // Missing positional argument
@@ -237,11 +254,10 @@ public class HandlerExecutor {
                     }
                     else {
                         // Flag
-                        result.add(Boolean.valueOf(pa.hasOption(omd.getName())));
+                        result.add(Boolean.valueOf(text != null));
                     }
                 }
-                else if (pa.hasOption(omd.getName())) {
-                    String text = pa.getOption(omd.getName());
+                else if (text != null) {
                     if (omd.getType() == String.class) {
                         // Nothing to convert
                         result.add(text);
@@ -286,6 +302,14 @@ public class HandlerExecutor {
         return result.toArray();
     }
 
+    /**
+     * Executes the named command.
+     * 
+     * @param sender the command sender
+     * @param name the name of the command to execute
+     * @param args command arguments
+     * @return true if successfully handled, false otherwise
+     */
     public boolean execute(CommandSender sender, String name, String[] args) {
         SubCommandMetaData scmd = commandMap.get(name);
 

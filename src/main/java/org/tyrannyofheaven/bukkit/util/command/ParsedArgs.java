@@ -5,12 +5,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Convenience class to parse a command's arguments and store the results.
+ * 
+ * @author zerothangel
+ */
 final class ParsedArgs {
 
     private final Map<String, String> options;
 
     private final String[] rest;
 
+    // Create an instance with the given parsed results
     private ParsedArgs(Map<String, String> options, String[] rest) {
         if (options == null)
             throw new IllegalArgumentException("options cannot be null");
@@ -22,6 +28,7 @@ final class ParsedArgs {
         this.rest = rest;
     }
 
+    // Return the OptionMetaData with the given name (usually a flag)
     private static OptionMetaData getOption(String flag, Set<OptionMetaData> options) {
         for (OptionMetaData omd : options) {
             for (String name : omd.getNames()) {
@@ -33,6 +40,13 @@ final class ParsedArgs {
         return null;
     }
 
+    /**
+     * Parse command arguments according to the given CommandMetaData.
+     * 
+     * @param cmd
+     * @param args
+     * @return 
+     */
     public static ParsedArgs parse(CommandMetaData cmd, String[] args) {
         if (cmd == null)
             throw new IllegalArgumentException("cmd cannot be null");
@@ -49,13 +63,15 @@ final class ParsedArgs {
             String arg = args[pos];
             if (OptionMetaData.isArgument(arg)) {
                 // positional argument
+                // FIXME There's something wrong about this...
+                // Should positional arguments that start with '-' be allowed?
                 break;
             }
             else {
                 OptionMetaData omd = getOption(arg, cmd.getFlagOptions());
                 if (omd == null) {
                     // Unknown option
-                    return null;
+                    throw new ParseException("Unknown flag: " + arg);
                 }
                 // Special handling of Boolean and boolean
                 if (omd.getType() == Boolean.class || omd.getType() == Boolean.TYPE) {
@@ -66,7 +82,7 @@ final class ParsedArgs {
                     pos++;
                     if (pos >= args.length) {
                         // Premature end
-                        return null;
+                        throw new ParseException("Missing value for flag: " + arg);
                     }
                     
                     options.put(omd.getName(), args[pos]);
@@ -80,7 +96,7 @@ final class ParsedArgs {
             if (!omd.isOptional()) {
                 if (pos >= args.length) {
                     // Ran out of args
-                    return null;
+                    throw new ParseException("Missing argument: " + omd.getName());
                 }
                 else {
                     options.put(omd.getName(), args[pos++]);
@@ -100,14 +116,12 @@ final class ParsedArgs {
         return new ParsedArgs(options, Arrays.copyOfRange(args, pos, args.length));
     }
 
-    public boolean hasOption(String name) {
-        if (name == null || name.trim().length() == 0)
-            throw new IllegalArgumentException("name must have a value");
-
-        // TODO collapse into getValue
-        return options.containsKey(name);
-    }
-
+    /**
+     * Retrieve associated value for an option.
+     * 
+     * @param name the option name
+     * @return the associated String value
+     */
     public String getOption(String name) {
         if (name == null || name.trim().length() == 0)
             throw new IllegalArgumentException("name must have a value");
@@ -115,6 +129,11 @@ final class ParsedArgs {
         return options.get(name);
     }
 
+    /**
+     * Retrieve unparsed positional parameters.
+     * 
+     * @return
+     */
     public String[] getRest() {
         return Arrays.copyOf(rest, rest.length);
     }

@@ -14,6 +14,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.Test;
 import org.tyrannyofheaven.bukkit.util.command.HandlerExecutor;
+import org.tyrannyofheaven.bukkit.util.command.ParseException;
 import org.tyrannyofheaven.bukkit.util.permissions.PermissionException;
 
 public class CommandTest {
@@ -109,9 +110,17 @@ public class CommandTest {
         Assert.assertEquals("Hello World!\nWith flag!\n", out.toString()); out.delete(0, out.length());
         
         // Required positional param, flag with value
-        Assert.assertFalse(ce.execute(dummySender, "greet", new String[0]));
-        Assert.assertFalse(ce.execute(dummySender, "greet", new String[] { "-o" }));
-        Assert.assertFalse(ce.execute(dummySender, "greet", new String[] { "-o", "foo" }));
+        boolean good = false;
+        try { ce.execute(dummySender, "greet", new String[0]); } catch (ParseException e) { good = true; }
+        Assert.assertTrue(good);
+
+        good = false;
+        try { ce.execute(dummySender, "greet", new String[] { "-o" }); } catch (ParseException e) { good = true; }
+        Assert.assertTrue(good);
+
+        good = false;
+        try { ce.execute(dummySender, "greet", new String[] { "-o", "foo" }); } catch (ParseException e) { good = true; }
+        Assert.assertTrue(good);
 
         Assert.assertTrue(ce.execute(dummySender, "greet", new String[] { "-o", "foo", "bar" }));
         Assert.assertEquals("Hello, bar\nWith option = foo!\n", out.toString()); out.delete(0, out.length());
@@ -129,7 +138,7 @@ public class CommandTest {
         Assert.assertTrue(ce.execute(dummySender, "foo", new String[] { "hello" }));
         Assert.assertEquals("Hello from the foo sub-command!\n", out.toString()); out.delete(0, out.length());
         
-        boolean good = false;
+        good = false;
         permissions.clear();
         try {
             ce.execute(dummySender, "secret", new String[0]);
