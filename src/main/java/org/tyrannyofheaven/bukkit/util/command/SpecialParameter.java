@@ -5,6 +5,9 @@ final class SpecialParameter implements MethodParameter {
     private final Type type;
     
     public SpecialParameter(Type type) {
+        if (type == null)
+            throw new IllegalArgumentException("type cannot be null");
+
         this.type = type;
     }
 

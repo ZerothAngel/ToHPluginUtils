@@ -36,6 +36,8 @@ public class HandlerExecutor {
         types.add(String.class);
         types.add(Boolean.class);
         types.add(Boolean.TYPE);
+        types.add(Byte.class);
+        types.add(Byte.TYPE);
         types.add(Short.class);
         types.add(Short.TYPE);
         types.add(Integer.class);
@@ -50,6 +52,11 @@ public class HandlerExecutor {
     }
     
     public HandlerExecutor(Plugin plugin, Object... handlers) {
+        if (plugin == null)
+            throw new IllegalArgumentException("plugin cannot be null");
+        if (handlers == null)
+            handlers = new Object[0];
+
         this.plugin = plugin;
         this.handlers.addAll(Arrays.asList(handlers));
         processHandlers();
@@ -74,7 +81,7 @@ public class HandlerExecutor {
                 SubCommand subCommand = method.getAnnotation(SubCommand.class);
 
                 if (command != null && subCommand != null) {
-                    throw new RuntimeException(); // FIXME etc
+                    throw new CommandException("Methods must not have both the @Command and @SubCommand annotations");
                 }
                 else if (command != null) {
                     // Handle @Command
@@ -114,19 +121,20 @@ public class HandlerExecutor {
                                 }
                             }
 
+                            // One or the other must be present
                             if (optAnn == null && restAnn == null) {
-                                throw new RuntimeException(); // FIXME placeholder
+                                throw new CommandException("Non-special parameters must be annotated with @Option or @Rest");
                             }
 
                             // Is it @Rest?
                             if (restAnn != null) {
                                 if (hasRest) {
-                                    throw new RuntimeException(); // FIXME
+                                    throw new CommandException("Method already has a @Rest annotated parameter");
                                 }
 
                                 // Is it an array of Strings?
                                 if (!paramType.isArray() || paramType.getComponentType() != String.class) {
-                                    throw new RuntimeException(); // FIXME
+                                    throw new CommandException("@Rest annotation must only be used on a String array parameter");
                                 }
 
                                 ma = new SpecialParameter(SpecialParameter.Type.REST);
@@ -137,7 +145,7 @@ public class HandlerExecutor {
 
                                 // Supported parameter type?
                                 if (!supportedParameterTypes.contains(paramType)) {
-                                    throw new RuntimeException(); // FIXME placeholder
+                                    throw new CommandException("Unsupported parameter type: " + paramType);
                                 }
 
                                 ma = new OptionMetaData(optAnn.value(), paramType, optAnn.optional());
@@ -161,7 +169,7 @@ public class HandlerExecutor {
                                 positional = true;
                             }
                             else if (positional) {
-                                throw new RuntimeException(); // FIXME placeholder
+                                throw new CommandException("Optional parameters must follow all non-optional ones");
                             }
                         }
                     }
@@ -169,19 +177,19 @@ public class HandlerExecutor {
                     CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll);
                     for (String commandName : command.value()) {
                         if (commandMap.put(commandName, cmd) != null) {
-                            // TODO warn about dupe
+                            throw new CommandException("Duplicate command: " + commandName);
                         }
                     }
                 }
                 else if (subCommand != null) {
                     // Handle @SubCommand
                     if (method.getParameterTypes().length != 0) {
-                        throw new RuntimeException(); // FIXME
+                        throw new CommandException("Sub-command methods must take no arguments");
                     }
                     SubCommandMetaData scmd = new SubCommandMetaData(handler, method, permissions, requireAll);
                     for (String commandName : subCommand.value()) {
                         if (commandMap.put(commandName, scmd) != null) {
-                            // TODO warn about dupe
+                            throw new CommandException("Duplicate sub-command: " + commandName);
                         }
                     }
                 }
@@ -220,7 +228,7 @@ public class HandlerExecutor {
                         }
                         else if (!omd.isOptional()) {
                             // Missing positional argument
-                            throw new RuntimeException(); // FIXME
+                            throw new ParseException("Missing argument: " + omd.getName());
                         }
                         else {
                             // Flag not specified
@@ -246,31 +254,26 @@ public class HandlerExecutor {
                             result.add(value);
                         }
                         catch (SecurityException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                            throw new CommandException(e);
                         }
                         catch (IllegalArgumentException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                            throw new CommandException(e);
                         }
                         catch (NoSuchMethodException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                            throw new CommandException(e);
                         }
                         catch (IllegalAccessException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                            throw new CommandException(e);
                         }
                         catch (InvocationTargetException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                            throw new CommandException(e);
                         }
                     }
                 }
                 else {
                     if (omd.isArgument() && !omd.isOptional()) {
                         // Missing positional argument
-                        throw new RuntimeException(); // FIXME
+                        throw new ParseException("Missing argument: " + omd.getName());
                     }
                     
                     result.add(null);
@@ -305,13 +308,13 @@ public class HandlerExecutor {
                     cmd.getMethod().invoke(cmd.getHandler(), methodArgs);
                 }
                 catch (IllegalArgumentException e) {
-                    e.printStackTrace();
+                    throw new CommandException(e);
                 }
                 catch (IllegalAccessException e) {
-                    e.printStackTrace();
+                    throw new CommandException(e);
                 }
                 catch (InvocationTargetException e) {
-                    e.printStackTrace();
+                    throw new CommandException(e);
                 }
                 return true;
             }
@@ -328,24 +331,24 @@ public class HandlerExecutor {
                     handler = scmd.getMethod().invoke(scmd.getHandler(), (Object[])null);
                 }
                 catch (IllegalArgumentException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    throw new CommandException(e);
                 }
                 catch (IllegalAccessException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    throw new CommandException(e);
                 }
                 catch (InvocationTargetException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    throw new CommandException(e);
                 }
                 if (handler != null) {
                     // Check HandlerExecutor cache
-                    HandlerExecutor he = subCommandMap.get(scmd);
-                    if (he == null) {
-                        // No HandlerExecutor yet, create a new one
-                        he = new HandlerExecutor(plugin, handler);
-                        subCommandMap.put(scmd, he); // FIXME thread safety?
+                    HandlerExecutor he;
+                    synchronized (this) {
+                        he = subCommandMap.get(scmd);
+                        if (he == null) {
+                            // No HandlerExecutor yet, create a new one
+                            he = new HandlerExecutor(plugin, handler);
+                            subCommandMap.put(scmd, he);
+                        }
                     }
                     // Chain to next handler
                     return he.execute(sender, subName, args);

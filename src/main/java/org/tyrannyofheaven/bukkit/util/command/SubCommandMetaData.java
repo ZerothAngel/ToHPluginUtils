@@ -14,6 +14,14 @@ class SubCommandMetaData {
     private final boolean requireAll;
 
     protected SubCommandMetaData(Object handler, Method method, String[] permissions, boolean requireAll) {
+        if (handler == null)
+            throw new IllegalArgumentException("handler cannot be null");
+        if (method == null)
+            throw new IllegalArgumentException("method cannot be null");
+        
+        if (permissions == null)
+            permissions = new String[0];
+
         this.handler = handler;
         this.method = method;
         this.permissions = Arrays.copyOf(permissions, permissions.length);

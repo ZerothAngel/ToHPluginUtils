@@ -12,6 +12,9 @@ public class PermissionUtils {
     }
 
     public static void requirePermission(Permissible player, String permission) {
+        if (permission == null || permission.trim().length() == 0)
+            throw new IllegalArgumentException("permission must have a value");
+
         if (!player.hasPermission(permission)) {
             throw new PermissionException(permission);
         }
@@ -21,6 +24,9 @@ public class PermissionUtils {
         if (permissions == null || permissions.length == 0) return;
 
         for (String permission : permissions) {
+            if (permission == null || permission.trim().length() == 0)
+                throw new IllegalArgumentException("permission must have a value");
+
             if (!player.hasPermission(permission)) {
                 throw new PermissionException(true, permissions);
             }
@@ -32,6 +38,9 @@ public class PermissionUtils {
 
         boolean found = false;
         for (String permission : permissions) {
+            if (permission == null || permission.trim().length() == 0)
+                throw new IllegalArgumentException("permission must have a value");
+
             if (player.hasPermission(permission)) {
                 found = true;
                 break;
@@ -42,15 +51,20 @@ public class PermissionUtils {
         }
     }
 
-    public static void displayPermissionException(CommandSender sender, PermissionException e) {
-        if (e.getPermissions().size() == 1) {
+    public static void displayPermissionException(CommandSender sender, PermissionException permissionException) {
+        if (sender == null)
+            throw new IllegalArgumentException("sender cannot be null");
+        if (permissionException == null)
+            throw new IllegalArgumentException("permissionException cannot be null");
+
+        if (permissionException.getPermissions().size() == 1) {
             sender.sendMessage(ChatColor.RED + "You need the following permission to do this:");
-            sender.sendMessage(ChatColor.GREEN + "- " + e.getPermissions().get(0));
+            sender.sendMessage(ChatColor.GREEN + "- " + permissionException.getPermissions().get(0));
         }
         else {
             sender.sendMessage(ChatColor.RED + String.format("You need %s of the following permissions to do this:",
-                    e.isAll() ? "all" : "one"));
-            for (String permission : e.getPermissions()) {
+                    permissionException.isAll() ? "all" : "one"));
+            for (String permission : permissionException.getPermissions()) {
                 sender.sendMessage(ChatColor.GREEN + "- " + permission);
             }
         }
