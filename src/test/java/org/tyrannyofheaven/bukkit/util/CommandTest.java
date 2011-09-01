@@ -1,5 +1,6 @@
 package org.tyrannyofheaven.bukkit.util;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import junit.framework.Assert;
@@ -13,6 +14,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.Test;
 import org.tyrannyofheaven.bukkit.util.command.HandlerExecutor;
+import org.tyrannyofheaven.bukkit.util.permissions.PermissionException;
 
 public class CommandTest {
 
@@ -27,7 +29,10 @@ public class CommandTest {
             public void onEnable() {
             }
         };
+
         final StringBuilder out = new StringBuilder();
+        final Set<String> permissions = new HashSet<String>();
+
         CommandSender dummySender = new CommandSender() {
             @Override
             public Server getServer() {
@@ -60,7 +65,7 @@ public class CommandTest {
             }
             @Override
             public boolean hasPermission(String name) {
-                return false;
+                return permissions.contains(name);
             }
             @Override
             public boolean hasPermission(Permission perm) {
@@ -91,20 +96,20 @@ public class CommandTest {
         HandlerExecutor ce = new HandlerExecutor(dummyPlugin, new MyHandler());
         
         // No positional params, boolean flag
-        Assert.assertTrue(ce.execute(dummySender, "hello", new String[] {}));
+        Assert.assertTrue(ce.execute(dummySender, "hello", new String[0]));
         Assert.assertEquals("Hello World!\n", out.toString()); out.delete(0, out.length());
 
         Assert.assertTrue(ce.execute(dummySender, "hello", new String[] { "-f" }));
         Assert.assertEquals("Hello World!\nWith flag!\n", out.toString()); out.delete(0, out.length());
 
-        Assert.assertTrue(ce.execute(dummySender, "greetings", new String[] {}));
+        Assert.assertTrue(ce.execute(dummySender, "greetings", new String[0]));
         Assert.assertEquals("Hello World!\n", out.toString()); out.delete(0, out.length());
 
         Assert.assertTrue(ce.execute(dummySender, "greetings", new String[] { "-f" }));
         Assert.assertEquals("Hello World!\nWith flag!\n", out.toString()); out.delete(0, out.length());
         
         // Required positional param, flag with value
-        Assert.assertFalse(ce.execute(dummySender, "greet", new String[] { }));
+        Assert.assertFalse(ce.execute(dummySender, "greet", new String[0]));
         Assert.assertFalse(ce.execute(dummySender, "greet", new String[] { "-o" }));
         Assert.assertFalse(ce.execute(dummySender, "greet", new String[] { "-o", "foo" }));
 
@@ -119,10 +124,24 @@ public class CommandTest {
         Assert.assertEquals("Hello there\n", out.toString()); out.delete(0, out.length());
         
         // @SubCommand
-        Assert.assertFalse(ce.execute(dummySender, "foo", new String[] { }));
+        Assert.assertFalse(ce.execute(dummySender, "foo", new String[0]));
 
         Assert.assertTrue(ce.execute(dummySender, "foo", new String[] { "hello" }));
         Assert.assertEquals("Hello from the foo sub-command!\n", out.toString()); out.delete(0, out.length());
+        
+        boolean good = false;
+        permissions.clear();
+        try {
+            ce.execute(dummySender, "secret", new String[0]);
+        }
+        catch (PermissionException e) {
+            good = true;
+        }
+        Assert.assertTrue(good);
+        
+        permissions.add("foo.secret");
+        Assert.assertTrue(ce.execute(dummySender, "secret", new String[0]));
+        Assert.assertEquals("Spike has a crush on Rarity\n", out.toString()); out.delete(0, out.length());
     }
 
 }

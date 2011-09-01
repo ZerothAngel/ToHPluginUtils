@@ -1,7 +1,7 @@
-package org.tyrannyofheaven.bukkit.util;
+package org.tyrannyofheaven.bukkit.util.permissions;
 
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permissible;
 
 public class PermissionUtils {
@@ -18,6 +18,8 @@ public class PermissionUtils {
     }
 
     public static void requireAllPermissions(Permissible player, String... permissions) {
+        if (permissions == null || permissions.length == 0) return;
+
         for (String permission : permissions) {
             if (!player.hasPermission(permission)) {
                 throw new PermissionException(true, permissions);
@@ -26,6 +28,8 @@ public class PermissionUtils {
     }
 
     public static void requireOnePermission(Permissible player, String... permissions) {
+        if (permissions == null || permissions.length == 0) return;
+
         boolean found = false;
         for (String permission : permissions) {
             if (player.hasPermission(permission)) {
@@ -38,16 +42,16 @@ public class PermissionUtils {
         }
     }
 
-    public static void displayPermissionException(Player player, PermissionException e) {
+    public static void displayPermissionException(CommandSender sender, PermissionException e) {
         if (e.getPermissions().size() == 1) {
-            player.sendMessage(ChatColor.RED + "You need the following permission to do this:");
-            player.sendMessage(ChatColor.GREEN + "- " + e.getPermissions().get(0));
+            sender.sendMessage(ChatColor.RED + "You need the following permission to do this:");
+            sender.sendMessage(ChatColor.GREEN + "- " + e.getPermissions().get(0));
         }
         else {
-            player.sendMessage(ChatColor.RED + String.format("You need %s of the following permissions to do this:",
+            sender.sendMessage(ChatColor.RED + String.format("You need %s of the following permissions to do this:",
                     e.isAll() ? "all" : "one"));
             for (String permission : e.getPermissions()) {
-                player.sendMessage(ChatColor.GREEN + "- " + permission);
+                sender.sendMessage(ChatColor.GREEN + "- " + permission);
             }
         }
     }

@@ -1,16 +1,23 @@
 package org.tyrannyofheaven.bukkit.util.command;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 class SubCommandMetaData {
 
-    protected final Object handler;
+    private final Object handler;
 
-    protected final Method method;
+    private final Method method;
 
-    protected SubCommandMetaData(Object handler, Method method) {
+    private final String[] permissions;
+    
+    private final boolean requireAll;
+
+    protected SubCommandMetaData(Object handler, Method method, String[] permissions, boolean requireAll) {
         this.handler = handler;
         this.method = method;
+        this.permissions = Arrays.copyOf(permissions, permissions.length);
+        this.requireAll = requireAll;
     }
 
     public Object getHandler() {
@@ -19,6 +26,14 @@ class SubCommandMetaData {
 
     public Method getMethod() {
         return method;
+    }
+
+    public String[] getPermissions() {
+        return permissions;
+    }
+
+    public boolean isRequireAll() {
+        return requireAll;
     }
 
 }
