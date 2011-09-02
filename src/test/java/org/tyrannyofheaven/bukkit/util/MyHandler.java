@@ -53,8 +53,10 @@ public class MyHandler {
 
     @Command("secret")
     @Require("foo.secret")
-    public void secret(CommandSender sender) {
+    public void secret(CommandSender sender, MyPlugin plugin) {
         sender.sendMessage("Spike has a crush on Rarity");
+        // Try calling a subclass method
+        plugin.test(sender);
     }
 
 }

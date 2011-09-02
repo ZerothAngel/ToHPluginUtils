@@ -23,15 +23,15 @@ import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
  * 
  * @author zerothangel
  */
-public class HandlerExecutor {
+public class HandlerExecutor<T extends Plugin> {
 
     private static final Set<Class<?>> supportedParameterTypes;
     
-    private final Plugin plugin;
+    private final T plugin;
 
     private final Map<String, SubCommandMetaData> commandMap = new HashMap<String, SubCommandMetaData>();
 
-    private final Map<Object, HandlerExecutor> subCommandMap = new WeakHashMap<Object, HandlerExecutor>();
+    private final Map<Object, HandlerExecutor<T>> subCommandMap = new WeakHashMap<Object, HandlerExecutor<T>>();
 
     static {
         // Build set of supported parameter types
@@ -60,7 +60,7 @@ public class HandlerExecutor {
      * @param plugin the associated plugin
      * @param handlers handler objects
      */
-    public HandlerExecutor(Plugin plugin, Object... handlers) {
+    public HandlerExecutor(T plugin, Object... handlers) {
         if (plugin == null)
             throw new IllegalArgumentException("plugin cannot be null");
         if (handlers == null)
@@ -110,7 +110,7 @@ public class HandlerExecutor {
                         if (paramType.isAssignableFrom(Server.class)) {
                             ma = new SpecialParameter(SpecialParameter.Type.SERVER);
                         }
-                        else if (paramType.isAssignableFrom(Plugin.class)) {
+                        else if (paramType.isAssignableFrom(plugin.getClass())) {
                             ma = new SpecialParameter(SpecialParameter.Type.PLUGIN);
                         }
                         else if (paramType.isAssignableFrom(CommandSender.class)) {
@@ -362,12 +362,12 @@ public class HandlerExecutor {
                 }
                 if (handler != null) {
                     // Check HandlerExecutor cache
-                    HandlerExecutor he;
+                    HandlerExecutor<T> he;
                     synchronized (this) {
                         he = subCommandMap.get(handler);
                         if (he == null) {
                             // No HandlerExecutor yet, create a new one
-                            he = new HandlerExecutor(plugin, handler);
+                            he = new HandlerExecutor<T>(plugin, handler);
                             subCommandMap.put(handler, he);
                         }
                     }

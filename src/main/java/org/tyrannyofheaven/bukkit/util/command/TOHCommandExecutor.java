@@ -15,11 +15,11 @@ import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
  * 
  * @author zerothangel
  */
-public class TOHCommandExecutor implements CommandExecutor {
+public class TOHCommandExecutor<T extends Plugin> implements CommandExecutor {
 
-    private final Plugin plugin;
+    private final T plugin;
 
-    private final HandlerExecutor rootHandlerExecutor;
+    private final HandlerExecutor<T> rootHandlerExecutor;
 
     /**
      * Create an instance.
@@ -27,13 +27,13 @@ public class TOHCommandExecutor implements CommandExecutor {
      * @param plugin the associated plugin
      * @param handlers the handler objects
      */
-    public TOHCommandExecutor(Plugin plugin, Object... handlers) {
+    public TOHCommandExecutor(T plugin, Object... handlers) {
         if (plugin == null)
             throw new IllegalArgumentException("plugin cannot be null");
 
         this.plugin = plugin;
 
-        rootHandlerExecutor = new HandlerExecutor(plugin, handlers);
+        rootHandlerExecutor = new HandlerExecutor<T>(plugin, handlers);
     }
 
     /* (non-Javadoc)
