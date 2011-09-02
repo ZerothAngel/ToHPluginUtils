@@ -29,11 +29,9 @@ public class HandlerExecutor {
     
     private final Plugin plugin;
 
-    private final List<Object> handlers = new ArrayList<Object>();
-
     private final Map<String, SubCommandMetaData> commandMap = new HashMap<String, SubCommandMetaData>();
 
-    private final Map<SubCommandMetaData, HandlerExecutor> subCommandMap = new WeakHashMap<SubCommandMetaData, HandlerExecutor>();
+    private final Map<Object, HandlerExecutor> subCommandMap = new WeakHashMap<Object, HandlerExecutor>();
 
     static {
         // Build set of supported parameter types
@@ -69,13 +67,12 @@ public class HandlerExecutor {
             handlers = new Object[0];
 
         this.plugin = plugin;
-        this.handlers.addAll(Arrays.asList(handlers));
-        processHandlers();
+        processHandlers(handlers);
     }
 
     // Analyze each handler object and create/store the appropriate metadata
     // classes.
-    private void processHandlers() {
+    private void processHandlers(Object[] handlers) {
         for (Object handler : handlers) {
             Class<?> clazz = handler.getClass();
             // Scan each method
@@ -367,17 +364,19 @@ public class HandlerExecutor {
                     // Check HandlerExecutor cache
                     HandlerExecutor he;
                     synchronized (this) {
-                        he = subCommandMap.get(scmd);
+                        he = subCommandMap.get(handler);
                         if (he == null) {
                             // No HandlerExecutor yet, create a new one
                             he = new HandlerExecutor(plugin, handler);
-                            subCommandMap.put(scmd, he);
+                            subCommandMap.put(handler, he);
                         }
                     }
                     // Chain to next handler
                     return he.execute(sender, subName, args);
                 }
-                return true;
+                else {
+                    throw new CommandException("Sub-command method returned null for sub-command: " + subName);
+                }
             }
         }
         return false;
