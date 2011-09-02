@@ -20,7 +20,7 @@ import org.tyrannyofheaven.bukkit.util.permissions.PermissionException;
 public class CommandTest {
 
     @Test
-    public void testMetaData() throws Exception {
+    public void testHandlerExecutor() throws Exception {
         // Some mock objects
         Plugin dummyPlugin = new JavaPlugin() {
             @Override
