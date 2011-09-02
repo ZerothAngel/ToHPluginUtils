@@ -61,9 +61,14 @@ final class SpecialParameter implements MethodParameter {
          * org.bukkit.plugin.CommandSender
          */
         COMMAND_SENDER,
-        
+
         /**
-         * String[] parameter annotated with @Rest
+         * Unannotated String parameter
+         */
+        LABEL,
+
+        /**
+         * String[] parameter
          */
         REST;
     }
