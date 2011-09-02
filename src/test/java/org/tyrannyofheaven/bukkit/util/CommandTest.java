@@ -11,7 +11,6 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.Test;
 import org.tyrannyofheaven.bukkit.util.command.HandlerExecutor;
 import org.tyrannyofheaven.bukkit.util.command.ParseException;
@@ -22,14 +21,7 @@ public class CommandTest {
     @Test
     public void testHandlerExecutor() throws Exception {
         // Some mock objects
-        Plugin dummyPlugin = new JavaPlugin() {
-            @Override
-            public void onDisable() {
-            }
-            @Override
-            public void onEnable() {
-            }
-        };
+        MyPlugin plugin = new MyPlugin();
 
         final StringBuilder out = new StringBuilder();
         final Set<String> permissions = new HashSet<String>();
@@ -94,62 +86,62 @@ public class CommandTest {
             public void setOp(boolean value) {
             }
         };
-        HandlerExecutor ce = new HandlerExecutor(dummyPlugin, new MyHandler());
+        HandlerExecutor<MyPlugin> he = new HandlerExecutor<MyPlugin>(plugin, new MyHandler());
         
         // No positional params, boolean flag
-        Assert.assertTrue(ce.execute(dummySender, "hello", new String[0]));
+        Assert.assertTrue(he.execute(dummySender, "hello", new String[0]));
         Assert.assertEquals("Hello World!\n", out.toString()); out.delete(0, out.length());
 
-        Assert.assertTrue(ce.execute(dummySender, "hello", new String[] { "-f" }));
+        Assert.assertTrue(he.execute(dummySender, "hello", new String[] { "-f" }));
         Assert.assertEquals("Hello World!\nWith flag!\n", out.toString()); out.delete(0, out.length());
 
-        Assert.assertTrue(ce.execute(dummySender, "greetings", new String[0]));
+        Assert.assertTrue(he.execute(dummySender, "greetings", new String[0]));
         Assert.assertEquals("Hello World!\n", out.toString()); out.delete(0, out.length());
 
-        Assert.assertTrue(ce.execute(dummySender, "greetings", new String[] { "-f" }));
+        Assert.assertTrue(he.execute(dummySender, "greetings", new String[] { "-f" }));
         Assert.assertEquals("Hello World!\nWith flag!\n", out.toString()); out.delete(0, out.length());
         
         // Required positional param, flag with value
         boolean good = false;
-        try { ce.execute(dummySender, "greet", new String[0]); } catch (ParseException e) { good = true; }
+        try { he.execute(dummySender, "greet", new String[0]); } catch (ParseException e) { good = true; }
         Assert.assertTrue(good);
 
         good = false;
-        try { ce.execute(dummySender, "greet", new String[] { "-o" }); } catch (ParseException e) { good = true; }
+        try { he.execute(dummySender, "greet", new String[] { "-o" }); } catch (ParseException e) { good = true; }
         Assert.assertTrue(good);
 
         good = false;
-        try { ce.execute(dummySender, "greet", new String[] { "-o", "foo" }); } catch (ParseException e) { good = true; }
+        try { he.execute(dummySender, "greet", new String[] { "-o", "foo" }); } catch (ParseException e) { good = true; }
         Assert.assertTrue(good);
 
-        Assert.assertTrue(ce.execute(dummySender, "greet", new String[] { "-o", "foo", "bar" }));
+        Assert.assertTrue(he.execute(dummySender, "greet", new String[] { "-o", "foo", "bar" }));
         Assert.assertEquals("Hello, bar\nWith option = foo!\n", out.toString()); out.delete(0, out.length());
 
-        Assert.assertTrue(ce.execute(dummySender, "greet", new String[] { "-o", "foo", "bar", "garply" }));
+        Assert.assertTrue(he.execute(dummySender, "greet", new String[] { "-o", "foo", "bar", "garply" }));
         Assert.assertEquals("Hello, bar\nWith option = foo!\n", out.toString()); out.delete(0, out.length());
 
         // Positional argument that starts with -
-        Assert.assertTrue(ce.execute(dummySender, "greet", new String[] { "--", "-garply" }));
+        Assert.assertTrue(he.execute(dummySender, "greet", new String[] { "--", "-garply" }));
         Assert.assertEquals("Hello, -garply\n", out.toString()); out.delete(0, out.length());
 
         // @Rest
-        Assert.assertTrue(ce.execute(dummySender, "say", new String[] { "Hello", "there" }));
+        Assert.assertTrue(he.execute(dummySender, "say", new String[] { "Hello", "there" }));
         Assert.assertEquals("Hello there\n", out.toString()); out.delete(0, out.length());
         
         // No flags, so should not parse -Hello as one.
-        Assert.assertTrue(ce.execute(dummySender, "say", new String[] { "-Hello", "there" }));
+        Assert.assertTrue(he.execute(dummySender, "say", new String[] { "-Hello", "there" }));
         Assert.assertEquals("-Hello there\n", out.toString()); out.delete(0, out.length());
 
         // @SubCommand
-        Assert.assertFalse(ce.execute(dummySender, "foo", new String[0]));
+        Assert.assertFalse(he.execute(dummySender, "foo", new String[0]));
 
-        Assert.assertTrue(ce.execute(dummySender, "foo", new String[] { "hello" }));
+        Assert.assertTrue(he.execute(dummySender, "foo", new String[] { "hello" }));
         Assert.assertEquals("Hello from the foo sub-command!\n", out.toString()); out.delete(0, out.length());
         
         good = false;
         permissions.clear();
         try {
-            ce.execute(dummySender, "secret", new String[0]);
+            he.execute(dummySender, "secret", new String[0]);
         }
         catch (PermissionException e) {
             good = true;
@@ -157,8 +149,8 @@ public class CommandTest {
         Assert.assertTrue(good);
         
         permissions.add("foo.secret");
-        Assert.assertTrue(ce.execute(dummySender, "secret", new String[0]));
-        Assert.assertEquals("Spike has a crush on Rarity\n", out.toString()); out.delete(0, out.length());
+        Assert.assertTrue(he.execute(dummySender, "secret", new String[0]));
+        Assert.assertEquals("Spike has a crush on Rarity\nyay!\n", out.toString()); out.delete(0, out.length());
     }
 
 }
