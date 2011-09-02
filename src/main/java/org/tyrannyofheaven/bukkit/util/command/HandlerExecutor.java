@@ -41,6 +41,8 @@ import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
  */
 public class HandlerExecutor<T extends Plugin> {
 
+    private static final Map<Class<?>, Class<?>> primitiveWrappers;
+
     private static final Set<Class<?>> supportedParameterTypes;
     
     private final T plugin;
@@ -50,23 +52,24 @@ public class HandlerExecutor<T extends Plugin> {
     private final Map<Object, HandlerExecutor<T>> subCommandMap = new WeakHashMap<Object, HandlerExecutor<T>>();
 
     static {
+        // Build map of primitives to primitive wrappers
+        Map<Class<?>, Class<?>> wrappers = new HashMap<Class<?>, Class<?>>();
+        wrappers.put(Boolean.TYPE, Boolean.class);
+        wrappers.put(Byte.TYPE, Byte.class);
+        wrappers.put(Short.TYPE, Short.class);
+        wrappers.put(Integer.TYPE, Integer.class);
+        wrappers.put(Long.TYPE, Long.class);
+        wrappers.put(Float.TYPE, Float.class);
+        wrappers.put(Double.TYPE, Double.class);
+        primitiveWrappers = Collections.unmodifiableMap(wrappers);
+
         // Build set of supported parameter types
         Set<Class<?>> types = new HashSet<Class<?>>();
         types.add(String.class);
-        types.add(Boolean.class);
-        types.add(Boolean.TYPE);
-        types.add(Byte.class);
-        types.add(Byte.TYPE);
-        types.add(Short.class);
-        types.add(Short.TYPE);
-        types.add(Integer.class);
-        types.add(Integer.TYPE);
-        types.add(Long.class);
-        types.add(Long.TYPE);
-        types.add(Float.class);
-        types.add(Float.TYPE);
-        types.add(Double.class);
-        types.add(Double.TYPE);
+        for (Map.Entry<Class<?>, Class<?>> me : primitiveWrappers.entrySet()) {
+            types.add(me.getKey());
+            types.add(me.getValue());
+        }
         supportedParameterTypes = Collections.unmodifiableSet(types);
     }
     
@@ -109,6 +112,7 @@ public class HandlerExecutor<T extends Plugin> {
                     // Handle @Command
                     List<MethodParameter> options = new ArrayList<MethodParameter>();
 
+                    boolean hasLabel = false;
                     boolean hasRest = false; // There can be only one!
 
                     // Scan each parameter
@@ -148,15 +152,26 @@ public class HandlerExecutor<T extends Plugin> {
 
                             // Must be present
                             if (optAnn == null) {
-                                throw new CommandException("Non-special parameters must be annotated with @Option");
+                                // Though is it a String parameter?
+                                if (paramType == String.class) {
+                                    if (hasLabel) {
+                                        throw new CommandException("Method already has an unannotated String parameter");
+                                    }
+                                    
+                                    ma = new SpecialParameter(SpecialParameter.Type.LABEL);
+                                    hasLabel = true;
+                                }
+                                else
+                                    throw new CommandException("Non-special parameters must be annotated with @Option");
                             }
+                            else {
+                                // Supported parameter type?
+                                if (!supportedParameterTypes.contains(paramType)) {
+                                    throw new CommandException("Unsupported parameter type: " + paramType);
+                                }
 
-                            // Supported parameter type?
-                            if (!supportedParameterTypes.contains(paramType)) {
-                                throw new CommandException("Unsupported parameter type: " + paramType);
+                                ma = new OptionMetaData(optAnn.value(), paramType, optAnn.optional());
                             }
-
-                            ma = new OptionMetaData(optAnn.value(), paramType, optAnn.optional());
                         }
                         
                         options.add(ma);
@@ -194,7 +209,7 @@ public class HandlerExecutor<T extends Plugin> {
 
     // Given parsed arguments and metadata, create an argument list suitable
     // for reflective invoke.
-    private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa) {
+    private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa, String label) {
         List<Object> result = new ArrayList<Object>(cmd.getParameters().size());
         for (MethodParameter mp : cmd.getParameters()) {
             if (mp instanceof SpecialParameter) {
@@ -207,6 +222,9 @@ public class HandlerExecutor<T extends Plugin> {
                 }
                 else if (sp.getType() == SpecialParameter.Type.COMMAND_SENDER) {
                     result.add(sender);
+                }
+                else if (sp.getType() == SpecialParameter.Type.LABEL) {
+                    result.add(label);
                 }
                 else if (sp.getType() == SpecialParameter.Type.REST) {
                     result.add(pa.getRest());
@@ -246,8 +264,13 @@ public class HandlerExecutor<T extends Plugin> {
                     }
                     else {
                         // Use .valueOf(String) to convert
+                        Class<?> paramType = omd.getType();
+                        // Primitives don't have .valueOf(String)
+                        Class<?> newType = primitiveWrappers.get(paramType);
+                        if (newType != null)
+                            paramType = newType;
                         try {
-                            Method valueOf = omd.getType().getMethod("valueOf", String.class);
+                            Method valueOf = paramType.getMethod("valueOf", String.class);
                             Object value = valueOf.invoke(null, text);
                             result.add(value);
                         }
@@ -264,7 +287,13 @@ public class HandlerExecutor<T extends Plugin> {
                             throw new CommandException(e);
                         }
                         catch (InvocationTargetException e) {
-                            throw new CommandException(e);
+                            // Unwrap, see if it's a NumberFormatException
+                            if (e.getCause() instanceof NumberFormatException) {
+                                // Complain
+                                throw new ParseException(ChatColor.RED + "Invalid number: " + omd.getName());
+                            }
+                            else
+                                throw new CommandException(e.getCause());
                         }
                     }
                 }
@@ -291,10 +320,10 @@ public class HandlerExecutor<T extends Plugin> {
      * @param name the name of the command to execute
      * @param args command arguments
      */
-    public void execute(CommandSender sender, String name, String[] args) {
+    public void execute(CommandSender sender, String name, String label, String[] args) {
         CommandMetaData cmd = commandMap.get(name);
         if (cmd == null)
-            throw new CommandException("Unhandled command: " + name);
+            throw new ParseException(ChatColor.RED + "Unknown command: " + name);
 
         // Check permissions
         if (cmd.isRequireAll()) {
@@ -305,7 +334,7 @@ public class HandlerExecutor<T extends Plugin> {
         }
 
         ParsedArgs pa = ParsedArgs.parse(cmd, args);
-        Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa);
+        Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa, label);
         Object nextHandler = null;
         try {
             nextHandler = cmd.getMethod().invoke(cmd.getHandler(), methodArgs);
@@ -347,7 +376,7 @@ public class HandlerExecutor<T extends Plugin> {
                 String subName = args[0];
                 args = Arrays.copyOfRange(args, 1, args.length);
 
-                he.execute(sender, subName, args);
+                he.execute(sender, subName, subName, args);
             }
         }
     }

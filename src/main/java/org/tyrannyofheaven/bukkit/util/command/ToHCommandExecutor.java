@@ -61,7 +61,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
             // NB: We use command.getName() rather than label. This allows the
             // user to freely add aliases by editing plugin.yml. However,
             // this also makes aliases in @Command and @SubCommand mostly useless.
-            rootHandlerExecutor.execute(sender, command.getName(), args);
+            rootHandlerExecutor.execute(sender, command.getName(), label, args);
             return true;
         }
         catch (PermissionException e) {
