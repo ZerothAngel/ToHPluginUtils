@@ -104,16 +104,16 @@ public class CommandTest {
         HandlerExecutor<MyPlugin> he = new HandlerExecutor<MyPlugin>(plugin, new MyHandler());
         
         // No positional params, boolean flag
-        Assert.assertTrue(he.execute(dummySender, "hello", new String[0]));
+        he.execute(dummySender, "hello", new String[0]);
         Assert.assertEquals("Hello World!\n", out.toString()); out.delete(0, out.length());
 
-        Assert.assertTrue(he.execute(dummySender, "hello", new String[] { "-f" }));
+        he.execute(dummySender, "hello", new String[] { "-f" });
         Assert.assertEquals("Hello World!\nWith flag!\n", out.toString()); out.delete(0, out.length());
 
-        Assert.assertTrue(he.execute(dummySender, "greetings", new String[0]));
+        he.execute(dummySender, "greetings", new String[0]);
         Assert.assertEquals("Hello World!\n", out.toString()); out.delete(0, out.length());
 
-        Assert.assertTrue(he.execute(dummySender, "greetings", new String[] { "-f" }));
+        he.execute(dummySender, "greetings", new String[] { "-f" });
         Assert.assertEquals("Hello World!\nWith flag!\n", out.toString()); out.delete(0, out.length());
         
         // Required positional param, flag with value
@@ -129,28 +129,30 @@ public class CommandTest {
         try { he.execute(dummySender, "greet", new String[] { "-o", "foo" }); } catch (ParseException e) { good = true; }
         Assert.assertTrue(good);
 
-        Assert.assertTrue(he.execute(dummySender, "greet", new String[] { "-o", "foo", "bar" }));
+        he.execute(dummySender, "greet", new String[] { "-o", "foo", "bar" });
         Assert.assertEquals("Hello, bar\nWith option = foo!\n", out.toString()); out.delete(0, out.length());
 
-        Assert.assertTrue(he.execute(dummySender, "greet", new String[] { "-o", "foo", "bar", "garply" }));
+        he.execute(dummySender, "greet", new String[] { "-o", "foo", "bar", "garply" });
         Assert.assertEquals("Hello, bar\nWith option = foo!\n", out.toString()); out.delete(0, out.length());
 
         // Positional argument that starts with -
-        Assert.assertTrue(he.execute(dummySender, "greet", new String[] { "--", "-garply" }));
+        he.execute(dummySender, "greet", new String[] { "--", "-garply" });
         Assert.assertEquals("Hello, -garply\n", out.toString()); out.delete(0, out.length());
 
-        // @Rest
-        Assert.assertTrue(he.execute(dummySender, "say", new String[] { "Hello", "there" }));
+        // String[] parameter
+        he.execute(dummySender, "say", new String[] { "Hello", "there" });
         Assert.assertEquals("Hello there\n", out.toString()); out.delete(0, out.length());
         
         // No flags, so should not parse -Hello as one.
-        Assert.assertTrue(he.execute(dummySender, "say", new String[] { "-Hello", "there" }));
+        he.execute(dummySender, "say", new String[] { "-Hello", "there" });
         Assert.assertEquals("-Hello there\n", out.toString()); out.delete(0, out.length());
 
-        // @SubCommand
-        Assert.assertFalse(he.execute(dummySender, "foo", new String[0]));
+        // Sub-command
+        good = false;
+        try { he.execute(dummySender, "foo", new String[0]); } catch (ParseException e) { good = true; }
+        Assert.assertTrue(good);
 
-        Assert.assertTrue(he.execute(dummySender, "foo", new String[] { "hello" }));
+        he.execute(dummySender, "foo", new String[] { "hello" });
         Assert.assertEquals("Hello from the foo sub-command!\n", out.toString()); out.delete(0, out.length());
         
         good = false;
@@ -164,7 +166,7 @@ public class CommandTest {
         Assert.assertTrue(good);
         
         permissions.add("foo.secret");
-        Assert.assertTrue(he.execute(dummySender, "secret", new String[0]));
+        he.execute(dummySender, "secret", new String[0]);
         Assert.assertEquals("Spike has a crush on Rarity\nyay!\n", out.toString()); out.delete(0, out.length());
     }
 

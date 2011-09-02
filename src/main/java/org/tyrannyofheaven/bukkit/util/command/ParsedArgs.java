@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.bukkit.ChatColor;
+
 /**
  * Convenience class to parse a command's arguments and store the results.
  * 
@@ -89,7 +91,7 @@ final class ParsedArgs {
                 OptionMetaData omd = getOption(arg, cmd.getFlagOptions());
                 if (omd == null) {
                     // Unknown option
-                    throw new ParseException("Unknown flag: " + arg);
+                    throw new ParseException(ChatColor.RED + "Unknown flag: " + arg);
                 }
                 // Special handling of Boolean and boolean
                 if (omd.getType() == Boolean.class || omd.getType() == Boolean.TYPE) {
@@ -100,7 +102,7 @@ final class ParsedArgs {
                     pos++;
                     if (pos >= args.length) {
                         // Premature end
-                        throw new ParseException("Missing value for flag: " + arg);
+                        throw new ParseException(ChatColor.RED + "Missing value for flag: " + arg);
                     }
                     
                     options.put(omd.getName(), args[pos]);
@@ -114,7 +116,7 @@ final class ParsedArgs {
             if (!omd.isOptional()) {
                 if (pos >= args.length) {
                     // Ran out of args
-                    throw new ParseException("Missing argument: " + omd.getName());
+                    throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
                 }
                 else {
                     options.put(omd.getName(), args[pos++]);

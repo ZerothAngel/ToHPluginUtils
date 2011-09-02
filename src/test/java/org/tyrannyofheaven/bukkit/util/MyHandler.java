@@ -18,8 +18,8 @@ package org.tyrannyofheaven.bukkit.util;
 import org.bukkit.command.CommandSender;
 import org.tyrannyofheaven.bukkit.util.command.Command;
 import org.tyrannyofheaven.bukkit.util.command.Option;
+import org.tyrannyofheaven.bukkit.util.command.ParseException;
 import org.tyrannyofheaven.bukkit.util.command.Require;
-import org.tyrannyofheaven.bukkit.util.command.SubCommand;
 
 public class MyHandler {
 
@@ -50,8 +50,10 @@ public class MyHandler {
         sender.sendMessage(sb.toString());
     }
 
-    @SubCommand("foo")
-    public FooHandler foo() {
+    @Command("foo")
+    public FooHandler foo(String[] args) {
+        if (args.length == 0)
+            throw new ParseException("Missing sub-command");
         return fooHandler;
     }
 

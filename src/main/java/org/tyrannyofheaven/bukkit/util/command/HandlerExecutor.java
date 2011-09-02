@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
@@ -44,7 +45,7 @@ public class HandlerExecutor<T extends Plugin> {
     
     private final T plugin;
 
-    private final Map<String, SubCommandMetaData> commandMap = new HashMap<String, SubCommandMetaData>();
+    private final Map<String, CommandMetaData> commandMap = new HashMap<String, CommandMetaData>();
 
     private final Map<Object, HandlerExecutor<T>> subCommandMap = new WeakHashMap<Object, HandlerExecutor<T>>();
 
@@ -103,12 +104,8 @@ public class HandlerExecutor<T extends Plugin> {
 
                 // @Command or @SubCommand present?
                 Command command = method.getAnnotation(Command.class);
-                SubCommand subCommand = method.getAnnotation(SubCommand.class);
 
-                if (command != null && subCommand != null) {
-                    throw new CommandException("Methods must not have both the @Command and @SubCommand annotations");
-                }
-                else if (command != null) {
+                if (command != null) {
                     // Handle @Command
                     List<MethodParameter> options = new ArrayList<MethodParameter>();
 
@@ -191,18 +188,6 @@ public class HandlerExecutor<T extends Plugin> {
                         }
                     }
                 }
-                else if (subCommand != null) {
-                    // Handle @SubCommand
-                    if (method.getParameterTypes().length != 0) {
-                        throw new CommandException("Sub-command methods must take no arguments");
-                    }
-                    SubCommandMetaData scmd = new SubCommandMetaData(handler, method, permissions, requireAll);
-                    for (String commandName : subCommand.value()) {
-                        if (commandMap.put(commandName, scmd) != null) {
-                            throw new CommandException("Duplicate sub-command: " + commandName);
-                        }
-                    }
-                }
             }
         }
     }
@@ -242,7 +227,7 @@ public class HandlerExecutor<T extends Plugin> {
                         }
                         else if (!omd.isOptional()) {
                             // Missing positional argument
-                            throw new ParseException("Missing argument: " + omd.getName());
+                            throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
                         }
                         else {
                             // Flag not specified
@@ -286,7 +271,7 @@ public class HandlerExecutor<T extends Plugin> {
                 else {
                     if (omd.isArgument() && !omd.isOptional()) {
                         // Missing positional argument
-                        throw new ParseException("Missing argument: " + omd.getName());
+                        throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
                     }
                     
                     result.add(null);
@@ -305,81 +290,66 @@ public class HandlerExecutor<T extends Plugin> {
      * @param sender the command sender
      * @param name the name of the command to execute
      * @param args command arguments
-     * @return true if successfully handled, false otherwise
      */
-    public boolean execute(CommandSender sender, String name, String[] args) {
-        SubCommandMetaData scmd = commandMap.get(name);
+    public void execute(CommandSender sender, String name, String[] args) {
+        CommandMetaData cmd = commandMap.get(name);
+        if (cmd == null)
+            throw new CommandException("Unhandled command: " + name);
 
         // Check permissions
-        if (scmd.isRequireAll()) {
-            PermissionUtils.requireAllPermissions(sender, scmd.getPermissions());
+        if (cmd.isRequireAll()) {
+            PermissionUtils.requireAllPermissions(sender, cmd.getPermissions());
         }
         else {
-            PermissionUtils.requireOnePermission(sender, scmd.getPermissions());
+            PermissionUtils.requireOnePermission(sender, cmd.getPermissions());
         }
 
-        if (scmd instanceof CommandMetaData) {
-            // Handle top-level command
-            CommandMetaData cmd = (CommandMetaData)scmd;
-            
-            ParsedArgs pa = ParsedArgs.parse(cmd, args);
-            if (pa != null) {
-                Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa);
-                try {
-                    cmd.getMethod().invoke(cmd.getHandler(), methodArgs);
-                }
-                catch (IllegalArgumentException e) {
-                    throw new CommandException(e);
-                }
-                catch (IllegalAccessException e) {
-                    throw new CommandException(e);
-                }
-                catch (InvocationTargetException e) {
-                    throw new CommandException(e);
-                }
-                return true;
+        ParsedArgs pa = ParsedArgs.parse(cmd, args);
+        Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa);
+        Object nextHandler = null;
+        try {
+            nextHandler = cmd.getMethod().invoke(cmd.getHandler(), methodArgs);
+        }
+        catch (IllegalArgumentException e) {
+            throw new CommandException(e);
+        }
+        catch (IllegalAccessException e) {
+            throw new CommandException(e);
+        }
+        catch (InvocationTargetException e) {
+            // Unwrap exception, re-wrap with CommandException, re-throw
+            if (e.getCause() instanceof ParseException) {
+                // Unless it's a ParseException, then don't wrap
+                throw (ParseException)e.getCause();
+            }
+            else {
+                throw new CommandException(e.getCause());
             }
         }
-        else if (scmd != null) {
+
+        if (nextHandler != null) {
             // Handle a sub-command
+            // Note: Original handler method is responsible for throwing
+            // ParseException to display usage (if needed).
             if (args.length >= 1) {
+                // Check HandlerExecutor cache
+                HandlerExecutor<T> he;
+                synchronized (this) {
+                    he = subCommandMap.get(nextHandler);
+                    if (he == null) {
+                        // No HandlerExecutor yet, create a new one
+                        he = new HandlerExecutor<T>(plugin, nextHandler);
+                        subCommandMap.put(nextHandler, he);
+                    }
+                }
+
+                // Chain to next handler
                 String subName = args[0];
                 args = Arrays.copyOfRange(args, 1, args.length);
 
-                // Execute method to grab handler
-                Object handler = null;
-                try {
-                    handler = scmd.getMethod().invoke(scmd.getHandler(), (Object[])null);
-                }
-                catch (IllegalArgumentException e) {
-                    throw new CommandException(e);
-                }
-                catch (IllegalAccessException e) {
-                    throw new CommandException(e);
-                }
-                catch (InvocationTargetException e) {
-                    throw new CommandException(e);
-                }
-                if (handler != null) {
-                    // Check HandlerExecutor cache
-                    HandlerExecutor<T> he;
-                    synchronized (this) {
-                        he = subCommandMap.get(handler);
-                        if (he == null) {
-                            // No HandlerExecutor yet, create a new one
-                            he = new HandlerExecutor<T>(plugin, handler);
-                            subCommandMap.put(handler, he);
-                        }
-                    }
-                    // Chain to next handler
-                    return he.execute(sender, subName, args);
-                }
-                else {
-                    throw new CommandException("Sub-command method returned null for sub-command: " + subName);
-                }
+                he.execute(sender, subName, args);
             }
         }
-        return false;
     }
 
 }
