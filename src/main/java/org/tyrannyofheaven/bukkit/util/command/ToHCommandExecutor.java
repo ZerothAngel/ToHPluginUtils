@@ -22,6 +22,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
+import org.tyrannyofheaven.bukkit.util.ToHUtils;
 import org.tyrannyofheaven.bukkit.util.permissions.PermissionException;
 import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
 
@@ -59,7 +60,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
         try {
             // NB: We use command.getName() rather than label. This allows the
             // user to freely add aliases by editing plugin.yml. However,
-            // this also makes aliases in @Command and @SubCommand useless.
+            // this also makes aliases in @Command and @SubCommand mostly useless.
             return rootHandlerExecutor.execute(sender, command.getName(), args);
         }
         catch (PermissionException e) {
@@ -72,7 +73,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
         }
         catch (Exception e) {
             sender.sendMessage(ChatColor.RED + "Plugin error; see server log");
-            plugin.getServer().getLogger().log(Level.SEVERE, String.format("[%s] Unhandled exception:", plugin.getDescription().getName()), e);
+            ToHUtils.log(plugin, Level.SEVERE, "Unhandled exception", e);
             return true;
         }
     }
