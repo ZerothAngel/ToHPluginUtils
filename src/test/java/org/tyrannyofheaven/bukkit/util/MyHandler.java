@@ -19,7 +19,6 @@ import org.bukkit.command.CommandSender;
 import org.tyrannyofheaven.bukkit.util.command.Command;
 import org.tyrannyofheaven.bukkit.util.command.Option;
 import org.tyrannyofheaven.bukkit.util.command.Require;
-import org.tyrannyofheaven.bukkit.util.command.Rest;
 import org.tyrannyofheaven.bukkit.util.command.SubCommand;
 
 public class MyHandler {
@@ -41,7 +40,7 @@ public class MyHandler {
     }
 
     @Command("say")
-    public void say(CommandSender sender, @Rest String[] args) {
+    public void say(CommandSender sender, String[] args) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < args.length; i++) {
             sb.append(args[i]);

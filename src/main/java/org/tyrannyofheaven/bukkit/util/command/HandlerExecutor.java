@@ -131,50 +131,35 @@ public class HandlerExecutor<T extends Plugin> {
                         else if (paramType.isAssignableFrom(CommandSender.class)) {
                             ma = new SpecialParameter(SpecialParameter.Type.COMMAND_SENDER);
                         }
+                        else if (paramType.isArray() && paramType.getComponentType() == String.class) {
+                            if (hasRest) {
+                                throw new CommandException("Method already has a String[] parameter");
+                            }
+
+                            ma = new SpecialParameter(SpecialParameter.Type.REST);
+                            hasRest = true;
+                        }
                         else {
-                            // Grab the @Option/@Rest annotations
+                            // Grab the @Option annotations
                             Option optAnn = null;
-                            Rest restAnn = null;
                             for (Annotation ann : anns) {
                                 if (ann instanceof Option) {
                                     optAnn = (Option)ann;
                                     break;
                                 }
-                                else if (ann instanceof Rest) {
-                                    restAnn = (Rest)ann;
-                                    break;
-                                }
                             }
 
-                            // One or the other must be present
-                            if (optAnn == null && restAnn == null) {
-                                throw new CommandException("Non-special parameters must be annotated with @Option or @Rest");
+                            // Must be present
+                            if (optAnn == null) {
+                                throw new CommandException("Non-special parameters must be annotated with @Option");
                             }
 
-                            // Is it @Rest?
-                            if (restAnn != null) {
-                                if (hasRest) {
-                                    throw new CommandException("Method already has a @Rest annotated parameter");
-                                }
-
-                                // Is it an array of Strings?
-                                if (!paramType.isArray() || paramType.getComponentType() != String.class) {
-                                    throw new CommandException("@Rest annotation must only be used on a String array parameter");
-                                }
-
-                                ma = new SpecialParameter(SpecialParameter.Type.REST);
-                                hasRest = true;
+                            // Supported parameter type?
+                            if (!supportedParameterTypes.contains(paramType)) {
+                                throw new CommandException("Unsupported parameter type: " + paramType);
                             }
-                            else {
-                                // Must be @Option
 
-                                // Supported parameter type?
-                                if (!supportedParameterTypes.contains(paramType)) {
-                                    throw new CommandException("Unsupported parameter type: " + paramType);
-                                }
-
-                                ma = new OptionMetaData(optAnn.value(), paramType, optAnn.optional());
-                            }
+                            ma = new OptionMetaData(optAnn.value(), paramType, optAnn.optional());
                         }
                         
                         options.add(ma);
