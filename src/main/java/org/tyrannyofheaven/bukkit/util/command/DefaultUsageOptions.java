@@ -29,7 +29,7 @@ public class DefaultUsageOptions implements UsageOptions {
      */
     @Override
     public String getPrefix() {
-        return ChatColor.YELLOW.toString();
+        return ChatColor.GREEN.toString();
     }
 
     /* (non-Javadoc)
@@ -37,7 +37,7 @@ public class DefaultUsageOptions implements UsageOptions {
      */
     @Override
     public String getFlagEnd() {
-        return ChatColor.YELLOW + "]";
+        return ChatColor.AQUA + "]" + ChatColor.GREEN;
     }
 
     /* (non-Javadoc)
@@ -45,7 +45,7 @@ public class DefaultUsageOptions implements UsageOptions {
      */
     @Override
     public String getFlagStart() {
-        return "[" + ChatColor.GREEN;
+        return ChatColor.AQUA + "[" + ChatColor.GOLD;
     }
 
     /* (non-Javadoc)
@@ -61,7 +61,7 @@ public class DefaultUsageOptions implements UsageOptions {
      */
     @Override
     public String getFlagValueStart() {
-        return " " + ChatColor.BLUE + "<";
+        return " " + ChatColor.LIGHT_PURPLE + "<";
     }
 
     /* (non-Javadoc)
@@ -70,9 +70,9 @@ public class DefaultUsageOptions implements UsageOptions {
     @Override
     public String getParameterEnd(boolean optional) {
         if (optional)
-            return ">" + ChatColor.YELLOW + "]";
+            return "]" + ChatColor.GREEN;
         else
-            return ">" + ChatColor.YELLOW;
+            return ">" + ChatColor.GREEN;
     }
 
     /* (non-Javadoc)
@@ -81,9 +81,9 @@ public class DefaultUsageOptions implements UsageOptions {
     @Override
     public String getParameterStart(boolean optional) {
         if (optional)
-            return "[" + ChatColor.BLUE + "<";
+            return ChatColor.AQUA + "[";
         else
-            return ChatColor.BLUE + "<";
+            return ChatColor.LIGHT_PURPLE + "<";
     }
 
     /* (non-Javadoc)
