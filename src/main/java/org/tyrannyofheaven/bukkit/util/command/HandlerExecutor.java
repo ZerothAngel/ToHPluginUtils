@@ -229,7 +229,7 @@ final class HandlerExecutor<T extends Plugin> {
 
     // Given parsed arguments and metadata, create an argument list suitable
     // for reflective invoke.
-    private Object[] buildMethodArgs(HandlerExecutor<T> he, CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa, String label, InvocationChain invChain) {
+    private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa, String label, InvocationChain invChain) {
         List<Object> result = new ArrayList<Object>(cmd.getParameters().size());
         for (MethodParameter mp : cmd.getParameters()) {
             if (mp instanceof SpecialParameter) {
@@ -362,7 +362,7 @@ final class HandlerExecutor<T extends Plugin> {
             invChain.addInvocation(label, cmd);
 
         ParsedArgs pa = ParsedArgs.parse(cmd, args);
-        Object[] methodArgs = buildMethodArgs(this, cmd, sender, cmd.getMethod(), pa, label, invChain);
+        Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa, label, invChain);
         Object nextHandler = null;
         try {
             nextHandler = cmd.getMethod().invoke(cmd.getHandler(), methodArgs);
@@ -425,7 +425,8 @@ final class HandlerExecutor<T extends Plugin> {
     }
 
     // Create a HelpBuilder associated with this HandlerExecutor
-    HelpBuilder<T> getHelpBuilder(InvocationChain rootInvocationChain) {
-        return new HelpBuilder<T>(this, rootInvocationChain, usageOptions);
+    HelpBuilder getHelpBuilder(InvocationChain rootInvocationChain) {
+        return new HelpBuilder(this, rootInvocationChain, usageOptions);
     }
+
 }
