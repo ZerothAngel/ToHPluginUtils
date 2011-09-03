@@ -1,3 +1,18 @@
+/*
+ * Copyright 2011 Allan Saddi <allan@saddi.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.tyrannyofheaven.bukkit.util.command;
 
 import java.util.ArrayList;
@@ -7,7 +22,12 @@ import java.util.List;
 import org.bukkit.permissions.Permissible;
 import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
 
-public final class InvocationChain {
+/**
+ * Holds a chain of CommandInvocations. Used for generating the usage string.
+ * 
+ * @author asaddi
+ */
+final class InvocationChain {
 
     private final List<CommandInvocation> chain;
 
@@ -19,12 +39,13 @@ public final class InvocationChain {
         this(new ArrayList<CommandInvocation>());
     }
 
+    // Adds a new invocation to the chain
     void addInvocation(String label, CommandMetaData commandMetaData) {
         chain.add(new CommandInvocation(label, commandMetaData));
     }
 
     // Generate a usage string
-    public String getUsageString() {
+    String getUsageString() {
         boolean first = true;
         
         StringBuilder usage = new StringBuilder();
@@ -75,7 +96,8 @@ public final class InvocationChain {
         return usage.toString();
     }
 
-    public boolean canBeExecutedBy(Permissible permissible) {
+    // Tests whether the given permissible can execute this entire chain
+    boolean canBeExecutedBy(Permissible permissible) {
         for (CommandInvocation ci : chain) {
             if (!PermissionUtils.hasPermissions(permissible, ci.getCommandMetaData().isRequireAll(), ci.getCommandMetaData().getPermissions()))
                 return false;
@@ -83,6 +105,7 @@ public final class InvocationChain {
         return true;
     }
 
+    // Returns a copy of this chain
     InvocationChain copy() {
         // Feh to clone()
         return new InvocationChain(new ArrayList<CommandInvocation>(chain));
