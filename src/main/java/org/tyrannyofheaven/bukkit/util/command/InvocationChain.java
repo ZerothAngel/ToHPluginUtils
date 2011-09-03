@@ -15,8 +15,8 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.bukkit.permissions.Permissible;
@@ -36,7 +36,7 @@ final class InvocationChain {
     }
 
     InvocationChain() {
-        this(new ArrayList<CommandInvocation>());
+        this(new LinkedList<CommandInvocation>());
     }
 
     // Adds a new invocation to the chain
@@ -121,7 +121,13 @@ final class InvocationChain {
     // Returns a copy of this chain
     InvocationChain copy() {
         // Feh to clone()
-        return new InvocationChain(new ArrayList<CommandInvocation>(chain));
+        return new InvocationChain(new LinkedList<CommandInvocation>(chain));
+    }
+
+    void pop() {
+        if (chain.isEmpty())
+            throw new IllegalStateException("InvocationChain is empty");
+        chain.remove(chain.size() - 1);
     }
 
 }
