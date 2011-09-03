@@ -47,6 +47,8 @@ public class HandlerExecutor<T extends Plugin> {
     
     private final T plugin;
 
+    private final UsageOptions usageOptions;
+
     private final Map<String, CommandMetaData> commandMap = new HashMap<String, CommandMetaData>();
 
     private final Map<Object, HandlerExecutor<T>> subCommandMap = new WeakHashMap<Object, HandlerExecutor<T>>();
@@ -77,16 +79,31 @@ public class HandlerExecutor<T extends Plugin> {
      * Create a HandlerExecutor instance.
      * 
      * @param plugin the associated plugin
+     * @param usageOptions UsageOptions to use with the HelpBuilder
      * @param handlers handler objects
      */
-    public HandlerExecutor(T plugin, Object... handlers) {
+    public HandlerExecutor(T plugin, UsageOptions usageOptions, Object... handlers) {
         if (plugin == null)
             throw new IllegalArgumentException("plugin cannot be null");
+        if (usageOptions == null)
+            throw new IllegalArgumentException("usageOptions cannot be null");
         if (handlers == null)
             handlers = new Object[0];
 
         this.plugin = plugin;
+        this.usageOptions = usageOptions;
         processHandlers(handlers);
+    }
+
+    /**
+     * Create a HandlerExecutor instance.
+     * 
+     * @param plugin the associated plugin
+     * @param usageOptions UsageOptions to use with the HelpBuilder
+     * @param handlers handler objects
+     */
+    public HandlerExecutor(T plugin, Object... handlers) {
+        this(plugin, new DefaultUsageOptions(), handlers);
     }
 
     // Analyze each handler object and create/store the appropriate metadata
@@ -199,7 +216,7 @@ public class HandlerExecutor<T extends Plugin> {
                         }
                     }
 
-                    CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll);
+                    CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll, command.description());
                     for (String commandName : command.value()) {
                         if (commandMap.put(commandName, cmd) != null) {
                             throw new CommandException("Duplicate command: " + commandName);
@@ -398,13 +415,13 @@ public class HandlerExecutor<T extends Plugin> {
         HandlerExecutor<T> he = subCommandMap.get(handler);
         if (he == null) {
             // No HandlerExecutor yet, create a new one
-            he = new HandlerExecutor<T>(plugin, handler);
+            he = new HandlerExecutor<T>(plugin, usageOptions, handler);
             subCommandMap.put(handler, he);
         }
         return he;
     }
 
     HelpBuilder<T> getUsageBuilder(InvocationChain rootInvocationChain) {
-        return new HelpBuilder<T>(this, rootInvocationChain);
+        return new HelpBuilder<T>(this, rootInvocationChain, usageOptions);
     }
 }
