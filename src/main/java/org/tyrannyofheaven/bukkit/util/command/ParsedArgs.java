@@ -17,8 +17,8 @@ package org.tyrannyofheaven.bukkit.util.command;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.bukkit.ChatColor;
 
@@ -46,7 +46,7 @@ final class ParsedArgs {
     }
 
     // Return the OptionMetaData with the given name (usually a flag)
-    private static OptionMetaData getOption(String flag, Set<OptionMetaData> options) {
+    private static OptionMetaData getOption(String flag, List<OptionMetaData> options) {
         for (OptionMetaData omd : options) {
             for (String name : omd.getNames()) {
                 if (flag.equals(name)) {

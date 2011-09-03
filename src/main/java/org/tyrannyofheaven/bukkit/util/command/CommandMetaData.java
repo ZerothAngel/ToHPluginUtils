@@ -19,9 +19,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Metadata for a command.
@@ -40,7 +38,7 @@ final class CommandMetaData {
 
     private final boolean requireAll;
     
-    private final Set<OptionMetaData> flagOptions;
+    private final List<OptionMetaData> flagOptions;
     
     private final List<OptionMetaData> positionalArguments;
 
@@ -71,7 +69,7 @@ final class CommandMetaData {
 
         this.parameters = Collections.unmodifiableList(new ArrayList<MethodParameter>(options));
         
-        Set<OptionMetaData> flagOptions = new HashSet<OptionMetaData>();
+        List<OptionMetaData> flagOptions = new ArrayList<OptionMetaData>();
         List<OptionMetaData> positionalArguments = new ArrayList<OptionMetaData>();
         for (MethodParameter mp : this.parameters) {
             if (mp instanceof OptionMetaData) {
@@ -85,7 +83,7 @@ final class CommandMetaData {
             }
         }
         
-        this.flagOptions = Collections.unmodifiableSet(flagOptions);
+        this.flagOptions = Collections.unmodifiableList(flagOptions);
         this.positionalArguments = Collections.unmodifiableList(positionalArguments);
     }
 
@@ -103,7 +101,7 @@ final class CommandMetaData {
      * 
      * @return set of OptionMetaData for any associated flags
      */
-    public Set<OptionMetaData> getFlagOptions() {
+    public List<OptionMetaData> getFlagOptions() {
         return flagOptions;
     }
 

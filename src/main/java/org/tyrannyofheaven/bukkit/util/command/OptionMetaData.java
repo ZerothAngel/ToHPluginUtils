@@ -24,7 +24,11 @@ import java.util.Arrays;
  */
 final class OptionMetaData implements MethodParameter {
 
+    private static final String DEFAULT_VALUE_NAME = "value";
+
     private final String[] names;
+
+    private final String valueName;
 
     private final Class<?> type;
     
@@ -37,13 +41,16 @@ final class OptionMetaData implements MethodParameter {
      * @param type the parameter type
      * @param optional true if optional
      */
-    public OptionMetaData(String[] names, Class<?> type, boolean optional) {
+    public OptionMetaData(String[] names, String valueName, Class<?> type, boolean optional) {
         if (names == null || names.length == 0)
             throw new IllegalArgumentException("names must be given");
+        if (valueName == null || valueName.trim().length() == 0)
+            valueName = DEFAULT_VALUE_NAME;
         if (type == null)
             throw new IllegalArgumentException("type cannot be null");
 
         this.names = Arrays.copyOf(names, names.length);
+        this.valueName = valueName;
         this.type = type;
         this.optional = optional;
     }
@@ -64,6 +71,15 @@ final class OptionMetaData implements MethodParameter {
      */
     public String[] getNames() {
         return names;
+    }
+
+    /**
+     * Returns the name of the value (for the usage string).
+     * 
+     * @return the value name
+     */
+    public String getValueName() {
+        return valueName;
     }
 
     /**

@@ -170,7 +170,7 @@ public class HandlerExecutor<T extends Plugin> {
                                     throw new CommandException("Unsupported parameter type: " + paramType);
                                 }
 
-                                ma = new OptionMetaData(optAnn.value(), paramType, optAnn.optional());
+                                ma = new OptionMetaData(optAnn.value(), optAnn.valueName(), paramType, optAnn.optional());
                             }
                         }
                         
@@ -319,8 +319,9 @@ public class HandlerExecutor<T extends Plugin> {
      * @param sender the command sender
      * @param name the name of the command to execute
      * @param args command arguments
+     * @param cmdChain TODO
      */
-    public void execute(CommandSender sender, String name, String label, String[] args) {
+    public void execute(CommandSender sender, String name, String label, String[] args, List<CommandInvocation> cmdChain) {
         CommandMetaData cmd = commandMap.get(name);
         if (cmd == null)
             throw new ParseException(ChatColor.RED + "Unknown command: " + name);
@@ -332,6 +333,10 @@ public class HandlerExecutor<T extends Plugin> {
         else {
             PermissionUtils.requireOnePermission(sender, cmd.getPermissions());
         }
+
+        // Save into chain
+        if (cmdChain != null)
+            cmdChain.add(new CommandInvocation(label, cmd));
 
         ParsedArgs pa = ParsedArgs.parse(cmd, args);
         Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa, label);
@@ -376,7 +381,7 @@ public class HandlerExecutor<T extends Plugin> {
                 String subName = args[0];
                 args = Arrays.copyOfRange(args, 1, args.length);
 
-                he.execute(sender, subName, subName, args);
+                he.execute(sender, subName, subName, args, cmdChain);
             }
         }
     }
