@@ -132,6 +132,12 @@ public class HandlerExecutor<T extends Plugin> {
                         else if (paramType.isAssignableFrom(CommandSender.class)) {
                             ma = new SpecialParameter(SpecialParameter.Type.COMMAND_SENDER);
                         }
+                        else if (paramType.isAssignableFrom(HandlerExecutor.class)) {
+                            ma = new SpecialParameter(SpecialParameter.Type.HANDLER_EXECUTOR);
+                        }
+                        else if (paramType.isAssignableFrom(InvocationChain.class)) {
+                            ma = new SpecialParameter(SpecialParameter.Type.INVOCATION_CHAIN);
+                        }
                         else if (paramType.isArray() && paramType.getComponentType() == String.class) {
                             if (hasRest) {
                                 throw new CommandException("Method already has a String[] parameter");
@@ -209,7 +215,7 @@ public class HandlerExecutor<T extends Plugin> {
 
     // Given parsed arguments and metadata, create an argument list suitable
     // for reflective invoke.
-    private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa, String label) {
+    private Object[] buildMethodArgs(HandlerExecutor<T> he, CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa, String label, InvocationChain invChain) {
         List<Object> result = new ArrayList<Object>(cmd.getParameters().size());
         for (MethodParameter mp : cmd.getParameters()) {
             if (mp instanceof SpecialParameter) {
@@ -225,6 +231,12 @@ public class HandlerExecutor<T extends Plugin> {
                 }
                 else if (sp.getType() == SpecialParameter.Type.LABEL) {
                     result.add(label);
+                }
+                else if (sp.getType() == SpecialParameter.Type.HANDLER_EXECUTOR) {
+                    result.add(he);
+                }
+                else if (sp.getType() == SpecialParameter.Type.INVOCATION_CHAIN) {
+                    result.add(invChain.copy());
                 }
                 else if (sp.getType() == SpecialParameter.Type.REST) {
                     result.add(pa.getRest());
@@ -321,7 +333,7 @@ public class HandlerExecutor<T extends Plugin> {
      * @param args command arguments
      * @param cmdChain TODO
      */
-    public void execute(CommandSender sender, String name, String label, String[] args, List<CommandInvocation> cmdChain) {
+    public void execute(CommandSender sender, String name, String label, String[] args, InvocationChain invChain) {
         CommandMetaData cmd = commandMap.get(name);
         if (cmd == null)
             throw new ParseException(ChatColor.RED + "Unknown command: " + name);
@@ -335,11 +347,11 @@ public class HandlerExecutor<T extends Plugin> {
         }
 
         // Save into chain
-        if (cmdChain != null)
-            cmdChain.add(new CommandInvocation(label, cmd));
+        if (invChain != null)
+            invChain.addInvocation(label, cmd);
 
         ParsedArgs pa = ParsedArgs.parse(cmd, args);
-        Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa, label);
+        Object[] methodArgs = buildMethodArgs(this, cmd, sender, cmd.getMethod(), pa, label, invChain);
         Object nextHandler = null;
         try {
             nextHandler = cmd.getMethod().invoke(cmd.getHandler(), methodArgs);
@@ -367,23 +379,35 @@ public class HandlerExecutor<T extends Plugin> {
             // ParseException to display usage (if needed).
             if (args.length >= 1) {
                 // Check HandlerExecutor cache
-                HandlerExecutor<T> he;
-                synchronized (this) {
-                    he = subCommandMap.get(nextHandler);
-                    if (he == null) {
-                        // No HandlerExecutor yet, create a new one
-                        he = new HandlerExecutor<T>(plugin, nextHandler);
-                        subCommandMap.put(nextHandler, he);
-                    }
-                }
+                HandlerExecutor<T> he = handlerExecutorFor(nextHandler);
 
                 // Chain to next handler
                 String subName = args[0];
                 args = Arrays.copyOfRange(args, 1, args.length);
 
-                he.execute(sender, subName, subName, args, cmdChain);
+                he.execute(sender, subName, subName, args, invChain);
             }
         }
+    }
+
+    public InvocationChain fillInvocationChain(InvocationChain invChain, String label) {
+        CommandMetaData cmd = commandMap.get(label);
+        if (cmd == null)
+            throw new IllegalArgumentException("Unknown command: " + label);
+        invChain = invChain.copy();
+        invChain.addInvocation(label, cmd);
+        return invChain;
+    }
+
+    public synchronized HandlerExecutor<T> handlerExecutorFor(Object handler) {
+        // Check HandlerExecutor cache
+        HandlerExecutor<T> he = subCommandMap.get(handler);
+        if (he == null) {
+            // No HandlerExecutor yet, create a new one
+            he = new HandlerExecutor<T>(plugin, handler);
+            subCommandMap.put(handler, he);
+        }
+        return he;
     }
 
 }

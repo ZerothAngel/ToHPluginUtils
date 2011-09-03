@@ -100,6 +100,10 @@ public class CommandTest {
             @Override
             public void setOp(boolean value) {
             }
+            @Override
+            public String getName() {
+                return null;
+            }
         };
         HandlerExecutor<MyPlugin> he = new HandlerExecutor<MyPlugin>(plugin, new MyHandler());
         
