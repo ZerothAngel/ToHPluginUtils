@@ -45,4 +45,9 @@ public @interface Command {
      */
     public String[] value();
 
+    /**
+     * Command description to be displayed when showing help.
+     */
+    public String description() default "";
+
 }

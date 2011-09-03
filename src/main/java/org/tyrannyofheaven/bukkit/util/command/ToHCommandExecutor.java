@@ -37,6 +37,8 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
 
     private final HandlerExecutor<T> rootHandlerExecutor;
 
+    private UsageOptions usageOptions = new DefaultUsageOptions();
+
     /**
      * Create an instance.
      * 
@@ -50,6 +52,13 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
         this.plugin = plugin;
 
         rootHandlerExecutor = new HandlerExecutor<T>(plugin, handlers);
+    }
+
+    public void setUsageOptions(UsageOptions usageOptions) {
+        if (usageOptions == null)
+            throw new IllegalArgumentException("usageOptions cannot be null");
+        
+        this.usageOptions = usageOptions;
     }
 
     /* (non-Javadoc)
@@ -74,7 +83,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
             // Show message if one was given
             if (e.getMessage() != null && e.getMessage().trim().length() > 0)
                 ToHUtils.sendMessage(sender, "%s", e.getMessage());
-            sender.sendMessage(invChain.getUsageString());
+            sender.sendMessage(invChain.getUsageString(usageOptions));
             return true;
         }
         catch (Exception e) {

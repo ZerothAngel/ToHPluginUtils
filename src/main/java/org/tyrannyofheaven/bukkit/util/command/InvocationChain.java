@@ -45,10 +45,16 @@ final class InvocationChain {
     }
 
     // Generate a usage string
-    String getUsageString() {
+    String getUsageString(UsageOptions usageOptions) {
+        return getUsageString(usageOptions, false);
+    }
+
+    // Generate a usage string
+    String getUsageString(UsageOptions usageOptions, boolean withDescription) {
         boolean first = true;
         
         StringBuilder usage = new StringBuilder();
+        usage.append(usageOptions.getPrefix());
         for (Iterator<CommandInvocation> i = chain.iterator(); i.hasNext();) {
             CommandInvocation ci = i.next();
             if (first) {
@@ -63,28 +69,24 @@ final class InvocationChain {
                 
                 for (Iterator<OptionMetaData> j = cmd.getFlagOptions().iterator(); j.hasNext();) {
                     OptionMetaData omd = j.next();
-                    usage.append('[');
+                    usage.append(usageOptions.getFlagStart());
                     usage.append(omd.getName());
                     if (omd.getType() != Boolean.class && omd.getType() != Boolean.TYPE) {
                         // Show a value
-                        usage.append(" <");
+                        usage.append(usageOptions.getFlagValueStart());
                         usage.append(omd.getValueName());
-                        usage.append('>');
+                        usage.append(usageOptions.getFlagValueEnd());
                     }
-                    usage.append(']');
+                    usage.append(usageOptions.getFlagEnd());
                     if (j.hasNext())
                         usage.append(' ');
                 }
                 
                 for (Iterator<OptionMetaData> j = cmd.getPositionalArguments().iterator(); j.hasNext();) {
                     OptionMetaData omd = j.next();
-                    if (omd.isOptional())
-                        usage.append('[');
-                    usage.append('<');
+                    usage.append(usageOptions.getParameterStart(omd.isOptional()));
                     usage.append(omd.getName());
-                    usage.append('>');
-                    if (omd.isOptional())
-                        usage.append(']');
+                    usage.append(usageOptions.getParameterEnd(omd.isOptional()));
                     if (j.hasNext())
                         usage.append(' ');
                 }
@@ -93,6 +95,17 @@ final class InvocationChain {
             if (i.hasNext())
                 usage.append(' ');
         }
+
+        // Attach description
+        if (withDescription && !chain.isEmpty()) {
+            // Pull out last CommandMetaData
+            CommandMetaData cmd = chain.get(chain.size() - 1).getCommandMetaData();
+            if (cmd.getDescription() != null) {
+                usage.append(usageOptions.getDescriptionDelimiter());
+                usage.append(cmd.getDescription());
+            }
+        }
+        
         return usage.toString();
     }
 
