@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.Plugin;
 
 /**
  * Automatically generates a help page for a sub-command.
@@ -28,9 +27,9 @@ import org.bukkit.plugin.Plugin;
  *
  * @param <T>
  */
-public class HelpBuilder<T extends Plugin> {
+public class HelpBuilder {
 
-    private final HandlerExecutor<T> handlerExecutor;
+    private final HandlerExecutor<?> handlerExecutor;
 
     private final InvocationChain rootInvocationChain;
 
@@ -42,7 +41,7 @@ public class HelpBuilder<T extends Plugin> {
 
     private final List<String> outputLines = new ArrayList<String>();
 
-    HelpBuilder(HandlerExecutor<T> handlerExecutor, InvocationChain rootInvocationChain, UsageOptions usageOptions) {
+    HelpBuilder(HandlerExecutor<?> handlerExecutor, InvocationChain rootInvocationChain, UsageOptions usageOptions) {
         if (handlerExecutor == null)
             throw new IllegalArgumentException("handlerExecutor cannot be null");
         if (rootInvocationChain == null)
@@ -62,7 +61,7 @@ public class HelpBuilder<T extends Plugin> {
      * @param usageOptions UsageOptions to use
      * @return this HelpBuilder
      */
-    public HelpBuilder<T> withUsageOptions(UsageOptions usageOptions) {
+    public HelpBuilder withUsageOptions(UsageOptions usageOptions) {
         if (usageOptions == null)
             throw new IllegalArgumentException("usageOptions cannot be null");
         
@@ -83,7 +82,7 @@ public class HelpBuilder<T extends Plugin> {
      * @param sender the CommandSender
      * @return this HelpBuilder
      */
-    public HelpBuilder<T> withCommandSender(CommandSender sender) {
+    public HelpBuilder withCommandSender(CommandSender sender) {
         if (sender == null)
             throw new IllegalArgumentException("sender cannot be null");
 
@@ -99,7 +98,7 @@ public class HelpBuilder<T extends Plugin> {
      * @param handler the handler object
      * @return this HelpBuilder
      */
-    public HelpBuilder<T> withHandler(Object handler) {
+    public HelpBuilder withHandler(Object handler) {
         if (handler == null)
             throw new IllegalArgumentException("handler cannot be null");
         
@@ -123,13 +122,13 @@ public class HelpBuilder<T extends Plugin> {
      *   sender fails the check, no usage is generated.
      * @return this HelpBuilder
      */
-    public HelpBuilder<T> forHandlerAndCommand(Object handler, String command, boolean usePermissions) {
+    public HelpBuilder forHandlerAndCommand(Object handler, String command, boolean usePermissions) {
         if (handler == null)
             throw new IllegalArgumentException("handler cannot be null");
         if (command == null || command.trim().length() == 0)
             throw new IllegalArgumentException("command must have a value");
 
-        HandlerExecutor<T> he = handlerExecutor.handlerExecutorFor(handler);
+        HandlerExecutor<?> he = handlerExecutor.handlerExecutorFor(handler);
         InvocationChain invChain = he.fillInvocationChain(rootInvocationChain, command);
         if (!usePermissions || invChain.canBeExecutedBy(getCommandSender())) {
             outputLines.add(invChain.getUsageString(usageOptions, true));
@@ -144,7 +143,7 @@ public class HelpBuilder<T extends Plugin> {
      * @param command the command
      * @return this HelpBuilder
      */
-    public HelpBuilder<T> forHandlerAndCommand(Object handler, String command) {
+    public HelpBuilder forHandlerAndCommand(Object handler, String command) {
         return forHandlerAndCommand(handler, command, true);
     }
 
@@ -157,7 +156,7 @@ public class HelpBuilder<T extends Plugin> {
      *   sender fails the check, no usage is generated.
      * @return this HelpBuilder
      */
-    public HelpBuilder<T> forCommand(String command, boolean usePermissions) {
+    public HelpBuilder forCommand(String command, boolean usePermissions) {
         return forHandlerAndCommand(getHandler(), command, usePermissions);
     }
 
@@ -168,7 +167,7 @@ public class HelpBuilder<T extends Plugin> {
      * @param command the command
      * @return this HelpBuilder
      */
-    public HelpBuilder<T> forCommand(String command) {
+    public HelpBuilder forCommand(String command) {
         return forCommand(command, true);
     }
 
