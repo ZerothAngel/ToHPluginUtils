@@ -229,7 +229,7 @@ final class HandlerExecutor<T extends Plugin> {
 
     // Given parsed arguments and metadata, create an argument list suitable
     // for reflective invoke.
-    private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa, String label, InvocationChain invChain) {
+    private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa, String label, InvocationChain invChain) throws Throwable {
         List<Object> result = new ArrayList<Object>(cmd.getParameters().size());
         for (MethodParameter mp : cmd.getParameters()) {
             if (mp instanceof SpecialParameter) {
@@ -297,26 +297,16 @@ final class HandlerExecutor<T extends Plugin> {
                             Object value = valueOf.invoke(null, text);
                             result.add(value);
                         }
-                        catch (SecurityException e) {
-                            throw new CommandException(e);
-                        }
-                        catch (IllegalArgumentException e) {
-                            throw new CommandException(e);
-                        }
-                        catch (NoSuchMethodException e) {
-                            throw new CommandException(e);
-                        }
-                        catch (IllegalAccessException e) {
-                            throw new CommandException(e);
-                        }
                         catch (InvocationTargetException e) {
                             // Unwrap, see if it's a NumberFormatException
                             if (e.getCause() instanceof NumberFormatException) {
                                 // Complain
                                 throw new ParseException(ChatColor.RED + "Invalid number: " + omd.getName());
                             }
-                            else
-                                throw new CommandException(e.getCause());
+                            else {
+                                // Re-throw
+                                throw e.getCause();
+                            }
                         }
                     }
                 }
@@ -342,9 +332,9 @@ final class HandlerExecutor<T extends Plugin> {
      * @param sender the command sender
      * @param name the name of the command to execute
      * @param args command arguments
-     * @param cmdChain TODO
+     * @param invChain an InvocationChain or null
      */
-    void execute(CommandSender sender, String name, String label, String[] args, InvocationChain invChain) {
+    void execute(CommandSender sender, String name, String label, String[] args, InvocationChain invChain) throws Throwable {
         CommandMetaData cmd = commandMap.get(name);
         if (cmd == null)
             throw new ParseException(ChatColor.RED + "Unknown command: " + name);
@@ -367,27 +357,14 @@ final class HandlerExecutor<T extends Plugin> {
         try {
             nextHandler = cmd.getMethod().invoke(cmd.getHandler(), methodArgs);
         }
-        catch (IllegalArgumentException e) {
-            throw new CommandException(e);
-        }
-        catch (IllegalAccessException e) {
-            throw new CommandException(e);
-        }
         catch (InvocationTargetException e) {
-            // Unwrap exception, re-wrap with CommandException, re-throw
-            if (e.getCause() instanceof ParseException) {
-                // Unless it's a ParseException, then don't wrap
-                throw (ParseException)e.getCause();
-            }
-            else {
-                throw new CommandException(e.getCause());
-            }
+            // Unwrap exception, re-throw
+            throw e.getCause();
         }
 
         if (nextHandler != null) {
             // Handle a sub-command
-            // Note: Original handler method is responsible for throwing
-            // ParseException to display usage (if needed).
+            args = pa.getRest();
             if (args.length >= 1) {
                 // Check HandlerExecutor cache
                 HandlerExecutor<T> he = handlerExecutorFor(nextHandler);

@@ -86,9 +86,13 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
             sender.sendMessage(invChain.getUsageString(usageOptions));
             return true;
         }
-        catch (Exception e) {
-            sender.sendMessage(ChatColor.RED + "Plugin error; see server log");
-            ToHUtils.log(plugin, Level.SEVERE, "Unhandled exception", e);
+        catch (Error e) {
+            // Re-throw Errors
+            throw e;
+        }
+        catch (Throwable t) {
+            sender.sendMessage(ChatColor.RED + "Plugin error; see server log.");
+            ToHUtils.log(plugin, Level.SEVERE, "Unhandled exception:", t);
             return true;
         }
     }

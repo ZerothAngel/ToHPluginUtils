@@ -34,7 +34,7 @@ import org.tyrannyofheaven.bukkit.util.permissions.PermissionException;
 public class CommandTest {
 
     @Test
-    public void testHandlerExecutor() throws Exception {
+    public void testHandlerExecutor() throws Throwable {
         // Some mock objects
         MyPlugin plugin = new MyPlugin();
 
