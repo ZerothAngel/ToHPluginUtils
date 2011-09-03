@@ -74,7 +74,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
             // Show message if one was given
             if (e.getMessage() != null && e.getMessage().trim().length() > 0)
                 ToHUtils.sendMessage(sender, "%s", e.getMessage());
-            ToHUtils.sendMessage(sender, "%s%s", ChatColor.YELLOW, invChain.getUsageString());
+            sender.sendMessage(invChain.getUsageString());
             return true;
         }
         catch (Exception e) {

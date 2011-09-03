@@ -68,15 +68,10 @@ final class SpecialParameter implements MethodParameter {
         LABEL,
 
         /**
-         * HandlerExecutor
+         * UsageBuilder
          */
-        HANDLER_EXECUTOR,
-        
-        /**
-         * InvocationChain
-         */
-        INVOCATION_CHAIN,
-        
+        USAGE_BUILDER,
+
         /**
          * String[] parameter
          */

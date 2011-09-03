@@ -132,11 +132,8 @@ public class HandlerExecutor<T extends Plugin> {
                         else if (paramType.isAssignableFrom(CommandSender.class)) {
                             ma = new SpecialParameter(SpecialParameter.Type.COMMAND_SENDER);
                         }
-                        else if (paramType.isAssignableFrom(HandlerExecutor.class)) {
-                            ma = new SpecialParameter(SpecialParameter.Type.HANDLER_EXECUTOR);
-                        }
-                        else if (paramType.isAssignableFrom(InvocationChain.class)) {
-                            ma = new SpecialParameter(SpecialParameter.Type.INVOCATION_CHAIN);
+                        else if (paramType.isAssignableFrom(HelpBuilder.class)) {
+                            ma = new SpecialParameter(SpecialParameter.Type.USAGE_BUILDER);
                         }
                         else if (paramType.isArray() && paramType.getComponentType() == String.class) {
                             if (hasRest) {
@@ -232,11 +229,8 @@ public class HandlerExecutor<T extends Plugin> {
                 else if (sp.getType() == SpecialParameter.Type.LABEL) {
                     result.add(label);
                 }
-                else if (sp.getType() == SpecialParameter.Type.HANDLER_EXECUTOR) {
-                    result.add(he);
-                }
-                else if (sp.getType() == SpecialParameter.Type.INVOCATION_CHAIN) {
-                    result.add(invChain.copy());
+                else if (sp.getType() == SpecialParameter.Type.USAGE_BUILDER) {
+                    result.add(getUsageBuilder(invChain));
                 }
                 else if (sp.getType() == SpecialParameter.Type.REST) {
                     result.add(pa.getRest());
@@ -410,7 +404,7 @@ public class HandlerExecutor<T extends Plugin> {
         return he;
     }
 
-    public UsageBuilder<T> getUsageBuilder(InvocationChain rootInvocationChain, CommandSender sender) {
-        return new UsageBuilder<T>(this, sender, rootInvocationChain);
+    HelpBuilder<T> getUsageBuilder(InvocationChain rootInvocationChain) {
+        return new HelpBuilder<T>(this, rootInvocationChain);
     }
 }
