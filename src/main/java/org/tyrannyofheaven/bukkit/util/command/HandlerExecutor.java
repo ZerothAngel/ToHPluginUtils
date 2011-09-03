@@ -39,7 +39,7 @@ import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
  * 
  * @author zerothangel
  */
-public class HandlerExecutor<T extends Plugin> {
+final class HandlerExecutor<T extends Plugin> {
 
     private static final Map<Class<?>, Class<?>> primitiveWrappers;
 
