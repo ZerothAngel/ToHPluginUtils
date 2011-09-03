@@ -40,6 +40,12 @@ public @interface Option {
      * not starting with '-' will be considered a positional parameter.
      */
     public String[] value();
+
+    /**
+     * The name of the value, for display in the usage string. Note that
+     * this is ignored for boolean/Boolean flags.
+     */
+    public String valueName() default "";
     
     /**
      * Whether or not this parameter is optional. Flags are always optional,

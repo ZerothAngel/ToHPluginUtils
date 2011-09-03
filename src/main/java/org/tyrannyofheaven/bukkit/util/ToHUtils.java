@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
 
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
 /**
@@ -118,6 +119,21 @@ public class ToHUtils {
         }
         else {
             plugin.getServer().getLogger().log(level, createLogMessage(plugin, format, args));
+        }
+    }
+
+    /**
+     * Convenience method for sending messages. Supports {@link String#format(String, Object...)}
+     * formatting and multiple lines.
+     * 
+     * @param sender the receiver of the message
+     * @param format the message format string
+     * @param args format arguments
+     */
+    public static void sendMessage(CommandSender sender, String format, Object... args) {
+        String message = String.format(format, args);
+        for (String line : message.split("\n")) {
+            sender.sendMessage(line);
         }
     }
 
