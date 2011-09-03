@@ -401,14 +401,12 @@ final class HandlerExecutor<T extends Plugin> {
         }
     }
 
-    // Add the named CommandMetaData to an InvocationChain, returning a copy
-    InvocationChain fillInvocationChain(InvocationChain invChain, String label) {
+    // Add the named CommandMetaData to an InvocationChain
+    void fillInvocationChain(InvocationChain invChain, String label) {
         CommandMetaData cmd = commandMap.get(label);
         if (cmd == null)
             throw new IllegalArgumentException("Unknown command: " + label);
-        invChain = invChain.copy();
         invChain.addInvocation(label, cmd);
-        return invChain;
     }
 
     // Retrieve cached HandlerExecutor for given handler object, creating

@@ -114,7 +114,42 @@ public class HelpBuilder {
     }
 
     /**
-     * Generate a usage message for a particular command.
+     * Generate a usage message for a particular sibling command.
+     * 
+     * @param command the sibling command
+     * @param usePermissions true if permissions should be checked. If the current
+     *   sender fails the check, no usage is generated.
+     * @return this HelpBuilder
+     */
+    public HelpBuilder forSiblingCommand(String command, boolean usePermissions) {
+        if (command == null || command.trim().length() == 0)
+            throw new IllegalArgumentException("command must have a value");
+        
+        // Remove last invocation (from a copy)
+        InvocationChain invChain = rootInvocationChain.copy();
+        invChain.pop();
+        // Fill with sibling invocation
+        handlerExecutor.fillInvocationChain(invChain, command);
+        if (!usePermissions || invChain.canBeExecutedBy(getCommandSender())) {
+            outputLines.add(invChain.getUsageString(usageOptions, true));
+        }
+        return this;
+    }
+
+    /**
+     * Generate a usage message for a particular sibling command. Permissions are used.
+     * 
+     * @param command the sibling command
+     * @param usePermissions true if permissions should be checked. If the current
+     *   sender fails the check, no usage is generated.
+     * @return this HelpBuilder
+     */
+    public HelpBuilder forSiblingCommand(String command) {
+        return forSiblingCommand(command, true);
+    }
+
+    /**
+     * Generate a usage message for a particular sub-command.
      * 
      * @param handler the handler in which the command resides
      * @param command the command
@@ -129,7 +164,8 @@ public class HelpBuilder {
             throw new IllegalArgumentException("command must have a value");
 
         HandlerExecutor<?> he = handlerExecutor.handlerExecutorFor(handler);
-        InvocationChain invChain = he.fillInvocationChain(rootInvocationChain, command);
+        InvocationChain invChain = rootInvocationChain.copy();
+        he.fillInvocationChain(invChain, command);
         if (!usePermissions || invChain.canBeExecutedBy(getCommandSender())) {
             outputLines.add(invChain.getUsageString(usageOptions, true));
         }
@@ -137,7 +173,7 @@ public class HelpBuilder {
     }
 
     /**
-     * Generate a usage message for a particular command. Permissions are used.
+     * Generate a usage message for a particular sub-command. Permissions are used.
      * 
      * @param handler the handler in which the command resides
      * @param command the command
@@ -148,7 +184,7 @@ public class HelpBuilder {
     }
 
     /**
-     * Generate a usage message for a particular command. The current handler
+     * Generate a usage message for a particular sub-command. The current handler
      * object is referenced.
      * 
      * @param command the command
@@ -161,7 +197,7 @@ public class HelpBuilder {
     }
 
     /**
-     * Generate a usage message for a particular command. The current handler
+     * Generate a usage message for a particular sub-command. The current handler
      * object is referenced. Permissions are used.
      * 
      * @param command the command
