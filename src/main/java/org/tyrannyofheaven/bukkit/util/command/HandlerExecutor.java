@@ -82,7 +82,7 @@ final class HandlerExecutor<T extends Plugin> {
      * @param usageOptions UsageOptions to use with the HelpBuilder
      * @param handlers handler objects
      */
-    public HandlerExecutor(T plugin, UsageOptions usageOptions, Object... handlers) {
+    HandlerExecutor(T plugin, UsageOptions usageOptions, Object... handlers) {
         if (plugin == null)
             throw new IllegalArgumentException("plugin cannot be null");
         if (usageOptions == null)
@@ -102,7 +102,7 @@ final class HandlerExecutor<T extends Plugin> {
      * @param usageOptions UsageOptions to use with the HelpBuilder
      * @param handlers handler objects
      */
-    public HandlerExecutor(T plugin, Object... handlers) {
+    HandlerExecutor(T plugin, Object... handlers) {
         this(plugin, new DefaultUsageOptions(), handlers);
     }
 
@@ -247,7 +247,7 @@ final class HandlerExecutor<T extends Plugin> {
                     result.add(label);
                 }
                 else if (sp.getType() == SpecialParameter.Type.USAGE_BUILDER) {
-                    result.add(getUsageBuilder(invChain));
+                    result.add(getHelpBuilder(invChain));
                 }
                 else if (sp.getType() == SpecialParameter.Type.REST) {
                     result.add(pa.getRest());
@@ -344,7 +344,7 @@ final class HandlerExecutor<T extends Plugin> {
      * @param args command arguments
      * @param cmdChain TODO
      */
-    public void execute(CommandSender sender, String name, String label, String[] args, InvocationChain invChain) {
+    void execute(CommandSender sender, String name, String label, String[] args, InvocationChain invChain) {
         CommandMetaData cmd = commandMap.get(name);
         if (cmd == null)
             throw new ParseException(ChatColor.RED + "Unknown command: " + name);
@@ -401,6 +401,7 @@ final class HandlerExecutor<T extends Plugin> {
         }
     }
 
+    // Add the named CommandMetaData to an InvocationChain, returning a copy
     InvocationChain fillInvocationChain(InvocationChain invChain, String label) {
         CommandMetaData cmd = commandMap.get(label);
         if (cmd == null)
@@ -410,6 +411,8 @@ final class HandlerExecutor<T extends Plugin> {
         return invChain;
     }
 
+    // Retrieve cached HandlerExecutor for given handler object, creating
+    // one if it doesn't exist
     synchronized HandlerExecutor<T> handlerExecutorFor(Object handler) {
         // Check HandlerExecutor cache
         HandlerExecutor<T> he = subCommandMap.get(handler);
@@ -421,7 +424,8 @@ final class HandlerExecutor<T extends Plugin> {
         return he;
     }
 
-    HelpBuilder<T> getUsageBuilder(InvocationChain rootInvocationChain) {
+    // Create a HelpBuilder associated with this HandlerExecutor
+    HelpBuilder<T> getHelpBuilder(InvocationChain rootInvocationChain) {
         return new HelpBuilder<T>(this, rootInvocationChain, usageOptions);
     }
 }
