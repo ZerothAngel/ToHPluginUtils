@@ -390,7 +390,7 @@ public class HandlerExecutor<T extends Plugin> {
         }
     }
 
-    public InvocationChain fillInvocationChain(InvocationChain invChain, String label) {
+    InvocationChain fillInvocationChain(InvocationChain invChain, String label) {
         CommandMetaData cmd = commandMap.get(label);
         if (cmd == null)
             throw new IllegalArgumentException("Unknown command: " + label);
@@ -399,7 +399,7 @@ public class HandlerExecutor<T extends Plugin> {
         return invChain;
     }
 
-    public synchronized HandlerExecutor<T> handlerExecutorFor(Object handler) {
+    synchronized HandlerExecutor<T> handlerExecutorFor(Object handler) {
         // Check HandlerExecutor cache
         HandlerExecutor<T> he = subCommandMap.get(handler);
         if (he == null) {
@@ -410,4 +410,7 @@ public class HandlerExecutor<T extends Plugin> {
         return he;
     }
 
+    public UsageBuilder<T> getUsageBuilder(InvocationChain rootInvocationChain, CommandSender sender) {
+        return new UsageBuilder<T>(this, sender, rootInvocationChain);
+    }
 }
