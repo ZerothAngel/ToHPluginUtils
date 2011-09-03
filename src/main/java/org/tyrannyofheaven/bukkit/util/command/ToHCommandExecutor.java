@@ -51,7 +51,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
 
         this.plugin = plugin;
 
-        rootHandlerExecutor = new HandlerExecutor<T>(plugin, handlers);
+        rootHandlerExecutor = new HandlerExecutor<T>(plugin, usageOptions, handlers);
     }
 
     public void setUsageOptions(UsageOptions usageOptions) {

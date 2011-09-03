@@ -130,7 +130,7 @@ public class HelpBuilder<T extends Plugin> {
             throw new IllegalArgumentException("command must have a value");
 
         HandlerExecutor<T> he = handlerExecutor.handlerExecutorFor(handler);
-        InvocationChain invChain = he.fillInvocationChain(rootInvocationChain.copy(), command);
+        InvocationChain invChain = he.fillInvocationChain(rootInvocationChain, command);
         if (!usePermissions || invChain.canBeExecutedBy(getCommandSender())) {
             outputLines.add(invChain.getUsageString(usageOptions, true));
         }
