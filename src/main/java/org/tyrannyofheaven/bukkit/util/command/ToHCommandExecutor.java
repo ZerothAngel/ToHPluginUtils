@@ -15,9 +15,6 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
@@ -60,12 +57,13 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        List<CommandInvocation> cmdChain = new ArrayList<CommandInvocation>();
+        InvocationChain invChain = new InvocationChain();
+
         try {
             // NB: We use command.getName() rather than label. This allows the
             // user to freely add aliases by editing plugin.yml. However,
             // this also makes aliases in @Command mostly useless.
-            rootHandlerExecutor.execute(sender, command.getName(), label, args, cmdChain);
+            rootHandlerExecutor.execute(sender, command.getName(), label, args, invChain);
             return true;
         }
         catch (PermissionException e) {
@@ -76,7 +74,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
             // Show message if one was given
             if (e.getMessage() != null && e.getMessage().trim().length() > 0)
                 ToHUtils.sendMessage(sender, "%s", e.getMessage());
-            ToHUtils.sendMessage(sender, "%s%s", ChatColor.YELLOW, buildUsage(cmdChain));
+            ToHUtils.sendMessage(sender, "%s%s", ChatColor.YELLOW, invChain.getUsageString());
             return true;
         }
         catch (Exception e) {
@@ -84,58 +82,6 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
             ToHUtils.log(plugin, Level.SEVERE, "Unhandled exception", e);
             return true;
         }
-    }
-
-    // Generate a usage string
-    private String buildUsage(List<CommandInvocation> cmdChain) {
-        boolean first = true;
-        
-        StringBuilder usage = new StringBuilder();
-        for (Iterator<CommandInvocation> i = cmdChain.iterator(); i.hasNext();) {
-            CommandInvocation ci = i.next();
-            if (first) {
-                usage.append('/');
-                first = false;
-            }
-            usage.append(ci.getLabel());
-            
-            CommandMetaData cmd = ci.getCommandMetaData();
-            if (!cmd.getFlagOptions().isEmpty() || !cmd.getPositionalArguments().isEmpty()) {
-                usage.append(' ');
-                
-                for (Iterator<OptionMetaData> j = cmd.getFlagOptions().iterator(); j.hasNext();) {
-                    OptionMetaData omd = j.next();
-                    usage.append('[');
-                    usage.append(omd.getName());
-                    if (omd.getType() != Boolean.class && omd.getType() != Boolean.TYPE) {
-                        // Show a value
-                        usage.append(" <");
-                        usage.append(omd.getValueName());
-                        usage.append('>');
-                    }
-                    usage.append(']');
-                    if (j.hasNext())
-                        usage.append(' ');
-                }
-                
-                for (Iterator<OptionMetaData> j = cmd.getPositionalArguments().iterator(); j.hasNext();) {
-                    OptionMetaData omd = j.next();
-                    if (omd.isOptional())
-                        usage.append('[');
-                    usage.append('<');
-                    usage.append(omd.getName());
-                    usage.append('>');
-                    if (omd.isOptional())
-                        usage.append(']');
-                    if (j.hasNext())
-                        usage.append(' ');
-                }
-            }
-            
-            if (i.hasNext())
-                usage.append(' ');
-        }
-        return usage.toString();
     }
 
 }

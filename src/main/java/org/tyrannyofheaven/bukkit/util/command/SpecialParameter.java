@@ -68,6 +68,16 @@ final class SpecialParameter implements MethodParameter {
         LABEL,
 
         /**
+         * HandlerExecutor
+         */
+        HANDLER_EXECUTOR,
+        
+        /**
+         * InvocationChain
+         */
+        INVOCATION_CHAIN,
+        
+        /**
          * String[] parameter
          */
         REST;
