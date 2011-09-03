@@ -139,13 +139,13 @@ public class PermissionUtils {
 
         if (permissionException.getPermissions().size() == 1) {
             sender.sendMessage(ChatColor.RED + "You need the following permission to do this:");
-            sender.sendMessage(ChatColor.GREEN + "- " + permissionException.getPermissions().get(0));
+            sender.sendMessage(ChatColor.DARK_GREEN + "- " + permissionException.getPermissions().get(0));
         }
         else {
             sender.sendMessage(ChatColor.RED + String.format("You need %s of the following permissions to do this:",
                     permissionException.isAll() ? "all" : "one"));
             for (String permission : permissionException.getPermissions()) {
-                sender.sendMessage(ChatColor.GREEN + "- " + permission);
+                sender.sendMessage(ChatColor.DARK_GREEN + "- " + permission);
             }
         }
     }

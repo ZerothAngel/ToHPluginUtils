@@ -82,6 +82,9 @@ final class InvocationChain {
                         usage.append(' ');
                 }
                 
+                if (!cmd.getFlagOptions().isEmpty() && !cmd.getPositionalArguments().isEmpty())
+                    usage.append(' ');
+
                 for (Iterator<OptionMetaData> j = cmd.getPositionalArguments().iterator(); j.hasNext();) {
                     OptionMetaData omd = j.next();
                     usage.append(usageOptions.getParameterStart(omd.isOptional()));
