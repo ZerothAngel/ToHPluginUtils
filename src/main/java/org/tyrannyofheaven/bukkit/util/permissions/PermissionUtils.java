@@ -31,6 +31,64 @@ public class PermissionUtils {
     }
 
     /**
+     * Test if a permissible has multiple permissions.
+     * 
+     * @param permissible the permissible
+     * @param all true if all permissions are required
+     * @param permissions the permissions
+     * @return true if conditions are met
+     */
+    public static boolean hasPermissions(Permissible permissible, boolean all, String... permissions) {
+        if (permissions == null || permissions.length == 0) return true;
+        
+        if (all) {
+            for (String permission : permissions) {
+                if (permission == null || permission.trim().length() == 0)
+                    throw new IllegalArgumentException("permission must have a value");
+
+                if (!permissible.hasPermission(permission))
+                    return false;
+            }
+            return true;
+        }
+        else {
+            boolean found = false;
+            for (String permission : permissions) {
+                if (permission == null || permission.trim().length() == 0)
+                    throw new IllegalArgumentException("permission must have a value");
+
+                if (permissible.hasPermission(permission)) {
+                    found = true;
+                    break;
+                }
+            }
+            return found;
+        }
+    }
+
+    /**
+     * Test if a permissible has at least one permission.
+     * 
+     * @param permissible the permissible
+     * @param permissions the permissions
+     * @return true if permissible has at least one permission
+     */
+    public static boolean hasOnePermission(Permissible permissible, String... permissions) {
+        return hasPermissions(permissible, false, permissions);
+    }
+    
+    /**
+     * Test if a permissible has all permissions.
+     * 
+     * @param permissible the permissible
+     * @param permissions the permissions
+     * @return true if permissible has all permissions
+     */
+    public static boolean hasAllPermissions(Permissible permissible, String... permissions) {
+        return hasPermissions(permissible, true, permissions);
+    }
+
+    /**
      * Require a single permission.
      * 
      * @param permissible the permissible to check
@@ -52,16 +110,8 @@ public class PermissionUtils {
      * @param permissions the names of the permissions
      */
     public static void requireAllPermissions(Permissible permissible, String... permissions) {
-        if (permissions == null || permissions.length == 0) return;
-
-        for (String permission : permissions) {
-            if (permission == null || permission.trim().length() == 0)
-                throw new IllegalArgumentException("permission must have a value");
-
-            if (!permissible.hasPermission(permission)) {
-                throw new PermissionException(true, permissions);
-            }
-        }
+        if (!hasAllPermissions(permissible, permissions))
+            throw new PermissionException(true, permissions);
     }
 
     /**
@@ -71,21 +121,8 @@ public class PermissionUtils {
      * @param permissions the names of the permissions
      */
     public static void requireOnePermission(Permissible permissible, String... permissions) {
-        if (permissions == null || permissions.length == 0) return;
-
-        boolean found = false;
-        for (String permission : permissions) {
-            if (permission == null || permission.trim().length() == 0)
-                throw new IllegalArgumentException("permission must have a value");
-
-            if (permissible.hasPermission(permission)) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
+        if (!hasOnePermission(permissible, permissions))
             throw new PermissionException(false, permissions);
-        }
     }
 
     /**
