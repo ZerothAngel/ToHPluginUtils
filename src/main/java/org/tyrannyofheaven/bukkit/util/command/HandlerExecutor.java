@@ -152,6 +152,9 @@ final class HandlerExecutor<T extends Plugin> {
                         else if (paramType.isAssignableFrom(HelpBuilder.class)) {
                             ma = new SpecialParameter(SpecialParameter.Type.USAGE_BUILDER);
                         }
+                        else if (paramType.isAssignableFrom(CommandSession.class)) {
+                            ma = new SpecialParameter(SpecialParameter.Type.SESSION);
+                        }
                         else if (paramType.isArray() && paramType.getComponentType() == String.class) {
                             if (hasRest) {
                                 throw new CommandException("Method already has a String[] parameter");
@@ -161,18 +164,40 @@ final class HandlerExecutor<T extends Plugin> {
                             hasRest = true;
                         }
                         else {
-                            // Grab the @Option annotations
+                            // Grab the @Option and @Session annotations
                             Option optAnn = null;
+                            Session sessAnn = null;
                             for (Annotation ann : anns) {
                                 if (ann instanceof Option) {
                                     optAnn = (Option)ann;
-                                    break;
+                                }
+                                else if (ann instanceof Session) {
+                                    sessAnn = (Session)ann;
                                 }
                             }
 
-                            // Must be present
-                            if (optAnn == null) {
-                                // Though is it a String parameter?
+                            // Both must not be present
+                            if (optAnn != null && sessAnn != null) {
+                                throw new CommandException("Parameter cannot have both @Option and @Session annotations");
+                            }
+                            else if (sessAnn != null) {
+                                // @Session
+                                ma = new SessionParameter(sessAnn.value(), paramType);
+                            }
+                            else if (optAnn != null) {
+                                // @Option
+                                
+                                // Supported parameter type?
+                                if (!supportedParameterTypes.contains(paramType)) {
+                                    throw new CommandException("Unsupported parameter type: " + paramType);
+                                }
+
+                                ma = new OptionMetaData(optAnn.value(), optAnn.valueName(), paramType, optAnn.optional(), optAnn.nullable());
+                            }
+                            else {
+                                // Not annotated at all
+
+                                // Is it a String parameter?
                                 if (paramType == String.class) {
                                     if (hasLabel) {
                                         throw new CommandException("Method already has an unannotated String parameter");
@@ -184,14 +209,6 @@ final class HandlerExecutor<T extends Plugin> {
                                 else
                                     throw new CommandException("Non-special parameters must be annotated with @Option");
                             }
-                            else {
-                                // Supported parameter type?
-                                if (!supportedParameterTypes.contains(paramType)) {
-                                    throw new CommandException("Unsupported parameter type: " + paramType);
-                                }
-
-                                ma = new OptionMetaData(optAnn.value(), optAnn.valueName(), paramType, optAnn.optional());
-                            }
                         }
                         
                         options.add(ma);
@@ -200,9 +217,11 @@ final class HandlerExecutor<T extends Plugin> {
                     // Some validation of option ordering
                     // Flags (-f, --flag) can appear anywhere.
                     // Optional arguments must follow positional ones.
+                    // Nullable arguments must follow non-nullable ones.
                     List<MethodParameter> reversed = new ArrayList<MethodParameter>(options);
                     Collections.reverse(reversed); // easier to do this in reverse
                     boolean positional = false; // true if positional arguments have started
+                    boolean nonNullable = false; // true if non-nullable arguments have started
                     for (MethodParameter ma : reversed) {
                         if (!(ma instanceof OptionMetaData)) continue;
                         OptionMetaData omd = (OptionMetaData)ma;
@@ -212,6 +231,13 @@ final class HandlerExecutor<T extends Plugin> {
                             }
                             else if (positional) {
                                 throw new CommandException("Optional parameters must follow all non-optional ones");
+                            }
+                            
+                            if (!omd.isNullable()) {
+                                nonNullable = true;
+                            }
+                            else if (nonNullable) {
+                                throw new CommandException("Nullable parameters must follow all non-nullable ones");
                             }
                         }
                     }
@@ -229,7 +255,7 @@ final class HandlerExecutor<T extends Plugin> {
 
     // Given parsed arguments and metadata, create an argument list suitable
     // for reflective invoke.
-    private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa, String label, InvocationChain invChain) throws Throwable {
+    private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa, String label, InvocationChain invChain, CommandSession session) throws Throwable {
         List<Object> result = new ArrayList<Object>(cmd.getParameters().size());
         for (MethodParameter mp : cmd.getParameters()) {
             if (mp instanceof SpecialParameter) {
@@ -249,6 +275,9 @@ final class HandlerExecutor<T extends Plugin> {
                 else if (sp.getType() == SpecialParameter.Type.USAGE_BUILDER) {
                     result.add(getHelpBuilder(invChain));
                 }
+                else if (sp.getType() == SpecialParameter.Type.SESSION) {
+                    result.add(session);
+                }
                 else if (sp.getType() == SpecialParameter.Type.REST) {
                     result.add(pa.getRest());
                 }
@@ -264,11 +293,16 @@ final class HandlerExecutor<T extends Plugin> {
                 if (omd.getType() == Boolean.class || omd.getType() == Boolean.TYPE) {
                     if (omd.isArgument()) {
                         if (text != null) {
-                            result.add(Boolean.valueOf(text));
+                            result.add(Boolean.valueOf(text)); // TODO use better converter
                         }
                         else if (!omd.isOptional()) {
-                            // Missing positional argument
-                            throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
+                            if (omd.isNullable()) {
+                                result.add(null);
+                            }
+                            else {
+                                // Missing positional argument
+                                throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
+                            }
                         }
                         else {
                             // Flag not specified
@@ -312,12 +346,18 @@ final class HandlerExecutor<T extends Plugin> {
                 }
                 else {
                     if (omd.isArgument() && !omd.isOptional()) {
-                        // Missing positional argument
-                        throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
+                        if (!omd.isNullable()) {
+                            // Missing positional argument
+                            throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
+                        }
                     }
                     
                     result.add(null);
                 }
+            }
+            else if (mp instanceof SessionParameter) {
+                SessionParameter sp = (SessionParameter)mp;
+                result.add(session.getValue(sp.getName(), sp.getType()));
             }
             else {
                 throw new AssertionError("Unknown MethodParameter type");
@@ -332,9 +372,26 @@ final class HandlerExecutor<T extends Plugin> {
      * @param sender the command sender
      * @param name the name of the command to execute
      * @param args command arguments
-     * @param invChain an InvocationChain or null
      */
-    void execute(CommandSender sender, String name, String label, String[] args, InvocationChain invChain) throws Throwable {
+    void execute(CommandSender sender, String name, String label, String[] args) throws Throwable {
+        execute(sender, name, label, args, null, null);
+    }
+
+    /**
+     * Executes the named command.
+     * 
+     * @param sender the command sender
+     * @param name the name of the command to execute
+     * @param args command arguments
+     * @param invChain an InvocationChain or null
+     * @param session a CommandSession or null
+     */
+    void execute(CommandSender sender, String name, String label, String[] args, InvocationChain invChain, CommandSession session) throws Throwable {
+        if (invChain == null)
+            invChain = new InvocationChain();
+        if (session == null)
+            session = new CommandSession();
+
         CommandMetaData cmd = commandMap.get(name);
         if (cmd == null)
             throw new ParseException(ChatColor.RED + "Unknown command: " + name);
@@ -352,7 +409,7 @@ final class HandlerExecutor<T extends Plugin> {
             invChain.addInvocation(label, cmd);
 
         ParsedArgs pa = ParsedArgs.parse(cmd, args);
-        Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa, label, invChain);
+        Object[] methodArgs = buildMethodArgs(cmd, sender, cmd.getMethod(), pa, label, invChain, session);
         Object nextHandler = null;
         try {
             nextHandler = cmd.getMethod().invoke(cmd.getHandler(), methodArgs);
@@ -373,7 +430,7 @@ final class HandlerExecutor<T extends Plugin> {
                 String subName = args[0];
                 args = Arrays.copyOfRange(args, 1, args.length);
 
-                he.execute(sender, subName, subName, args, invChain);
+                he.execute(sender, subName, subName, args, invChain, session);
             }
         }
     }

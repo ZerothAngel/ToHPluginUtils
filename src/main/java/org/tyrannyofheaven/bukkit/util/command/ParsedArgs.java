@@ -115,8 +115,15 @@ final class ParsedArgs {
         for (OptionMetaData omd : cmd.getPositionalArguments()) {
             if (!omd.isOptional()) {
                 if (pos >= args.length) {
-                    // Ran out of args
-                    throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
+                    if (omd.isNullable()) {
+                        // NB: No exception will be thrown and rest of arguments
+                        // will be unset. Use with care.
+                        break;
+                    }
+                    else {
+                        // Ran out of args
+                        throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
+                    }
                 }
                 else {
                     options.put(omd.getName(), args[pos++]);
