@@ -322,7 +322,13 @@ final class HandlerExecutor<T extends Plugin> {
                         }
                         else {
                             // Flag not specified
-                            result.add(Boolean.FALSE);
+                            // Set to false if primitive, null if wrapper
+                            if (omd.getType() == Boolean.TYPE) {
+                                result.add(Boolean.FALSE);
+                            }
+                            else {
+                                result.add(null);
+                            }
                         }
                     }
                     else {
