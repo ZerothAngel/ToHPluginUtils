@@ -253,6 +253,17 @@ final class HandlerExecutor<T extends Plugin> {
         }
     }
 
+    // Convert string to boolean (a little more friendlier than Boolean.valueOf(String))
+    private boolean toBoolean(String text) {
+        text = text.trim().toLowerCase();
+        if ("true".equals(text) || "t".equals(text) || "yes".equals(text) || "y".equals(text))
+            return true;
+        else if ("false".equals(text) || "f".equals(text) || "no".equals(text) || "n".equals(text))
+            return false;
+        else
+            throw new IllegalArgumentException("Cannot convert string to boolean");
+    }
+
     // Given parsed arguments and metadata, create an argument list suitable
     // for reflective invoke.
     private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, Method method, ParsedArgs pa, String label, InvocationChain invChain, CommandSession session) throws Throwable {
@@ -293,7 +304,12 @@ final class HandlerExecutor<T extends Plugin> {
                 if (omd.getType() == Boolean.class || omd.getType() == Boolean.TYPE) {
                     if (omd.isArgument()) {
                         if (text != null) {
-                            result.add(Boolean.valueOf(text)); // TODO use better converter
+                            try {
+                                result.add(toBoolean(text));
+                            }
+                            catch (IllegalArgumentException e) {
+                                throw new ParseException(ChatColor.RED + "Invalid boolean: " + omd.getName());
+                            }
                         }
                         else if (!omd.isOptional()) {
                             if (omd.isNullable()) {
