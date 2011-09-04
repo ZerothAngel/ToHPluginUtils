@@ -53,4 +53,10 @@ public @interface Option {
      */
     public boolean optional() default false;
 
+    /**
+     * Whether or not this parameter is nullable. Only applies to non-optional,
+     * non-flag parameters.
+     */
+    public boolean nullable() default false;
+
 }

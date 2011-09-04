@@ -34,6 +34,8 @@ final class OptionMetaData implements MethodParameter {
     
     private final boolean optional;
     
+    private final boolean nullable;
+
     /**
      * Create an OptionMetaData.
      * 
@@ -41,7 +43,7 @@ final class OptionMetaData implements MethodParameter {
      * @param type the parameter type
      * @param optional true if optional
      */
-    public OptionMetaData(String[] names, String valueName, Class<?> type, boolean optional) {
+    public OptionMetaData(String[] names, String valueName, Class<?> type, boolean optional, boolean nullable) {
         if (names == null || names.length == 0)
             throw new IllegalArgumentException("names must be given");
         if (valueName == null || valueName.trim().length() == 0)
@@ -53,6 +55,7 @@ final class OptionMetaData implements MethodParameter {
         this.valueName = valueName;
         this.type = type;
         this.optional = optional;
+        this.nullable = nullable;
     }
 
     /**
@@ -98,6 +101,15 @@ final class OptionMetaData implements MethodParameter {
      */
     public boolean isOptional() {
         return optional;
+    }
+
+    /**
+     * Returns whether or not the option is nullable.
+     * 
+     * @return true if nullable
+     */
+    public boolean isNullable() {
+        return nullable;
     }
 
     /**

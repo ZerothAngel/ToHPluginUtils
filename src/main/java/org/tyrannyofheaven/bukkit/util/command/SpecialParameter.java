@@ -30,7 +30,7 @@ final class SpecialParameter implements MethodParameter {
      * 
      * @param type the special type of parameter
      */
-    public SpecialParameter(Type type) {
+    SpecialParameter(Type type) {
         if (type == null)
             throw new IllegalArgumentException("type cannot be null");
 
@@ -42,7 +42,7 @@ final class SpecialParameter implements MethodParameter {
      * 
      * @return the type
      */
-    public Type getType() {
+    Type getType() {
         return type;
     }
 
@@ -71,6 +71,11 @@ final class SpecialParameter implements MethodParameter {
          * UsageBuilder
          */
         USAGE_BUILDER,
+
+        /**
+         * Session
+         */
+        SESSION,
 
         /**
          * String[] parameter
