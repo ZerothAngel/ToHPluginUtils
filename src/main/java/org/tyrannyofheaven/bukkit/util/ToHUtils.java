@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.logging.Level;
 
 import org.bukkit.command.CommandSender;
@@ -135,6 +137,88 @@ public class ToHUtils {
         for (String line : message.split("\n")) {
             sender.sendMessage(line);
         }
+    }
+
+    /**
+     * Returns true if text is non-null and contains non-whitespace characters.
+     * 
+     * @param text the string to test
+     * @return true if text is non-null and contains non-whitespace characters
+     */
+    public static boolean hasText(String text) {
+        return text != null && text.trim().length() > 0;
+    }
+
+    /**
+     * Returns a string representation of each object, with each object delimited
+     * by the given delimiter. Similar to "string join" in other languages.
+     * 
+     * @param delimiter the string delimiter
+     * @param coll a collection of objects
+     * @return the delimited string
+     */
+    public static String delimitedString(String delimiter, Collection<?> coll) {
+        StringBuilder sb = new StringBuilder();
+        for (Iterator<?> i = coll.iterator(); i.hasNext();) {
+            sb.append(i.next());
+            if (i.hasNext())
+                sb.append(delimiter);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Returns a string representation of each object, with each object delimited
+     * by the given delimiter. Similar to "string join" in other languages.
+     * 
+     * @param delimiter the string delimiter
+     * @param objs an array of objects
+     * @return the delimited string
+     */
+    public static String delimitedString(String delimiter, Object... objs) {
+        return delimitedString(delimiter, Arrays.asList(new Object[objs.length]));
+    }
+
+    /**
+     * Throws an AssertionError if test is false.
+     * 
+     * @param test the test
+     * @param message assertion message
+     */
+    public static void assertTrue(boolean test, String message) {
+        if (!test)
+            throw new AssertionError(message);
+    }
+
+    /**
+     * Throws an AssertionError if test is false.
+     * 
+     * @param test the test
+     */
+    public static void assertTrue(boolean test) {
+        if (!test)
+            throw new AssertionError();
+    }
+
+    /**
+     * Throws an AssertionError if test is true.
+     * 
+     * @param test the test
+     * @param message assertion message
+     */
+    public static void assertFalse(boolean test, String message) {
+        if (test)
+            throw new AssertionError(message);
+    }
+
+    /**
+     * Throws an AssertionError if test is true.
+     * 
+     * @param test the test
+     */
+    public static void assertFalse(boolean test) {
+        if (test)
+            throw new AssertionError();
     }
 
 }
