@@ -15,6 +15,8 @@
  */
 package org.tyrannyofheaven.bukkit.util.permissions;
 
+import static org.tyrannyofheaven.bukkit.util.ToHUtils.hasText;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permissible;
@@ -43,7 +45,7 @@ public class PermissionUtils {
         
         if (all) {
             for (String permission : permissions) {
-                if (permission == null || permission.trim().length() == 0)
+                if (!hasText(permission))
                     throw new IllegalArgumentException("permission must have a value");
 
                 if (!permissible.hasPermission(permission))
@@ -54,7 +56,7 @@ public class PermissionUtils {
         else {
             boolean found = false;
             for (String permission : permissions) {
-                if (permission == null || permission.trim().length() == 0)
+                if (!hasText(permission))
                     throw new IllegalArgumentException("permission must have a value");
 
                 if (permissible.hasPermission(permission)) {
@@ -95,7 +97,7 @@ public class PermissionUtils {
      * @param permission the name of the permission
      */
     public static void requirePermission(Permissible permissible, String permission) {
-        if (permission == null || permission.trim().length() == 0)
+        if (!hasText(permission))
             throw new IllegalArgumentException("permission must have a value");
 
         if (!permissible.hasPermission(permission)) {

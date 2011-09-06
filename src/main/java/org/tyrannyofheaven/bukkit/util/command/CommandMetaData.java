@@ -15,6 +15,8 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
+import static org.tyrannyofheaven.bukkit.util.ToHUtils.hasText;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,7 +65,7 @@ final class CommandMetaData {
             options = Collections.emptyList();
         if (permissions == null)
             permissions = new String[0];
-        if (description == null || description.trim().length() == 0)
+        if (!hasText(description))
             description = null;
 
         this.handler = handler;

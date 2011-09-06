@@ -15,6 +15,11 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
+import static org.tyrannyofheaven.bukkit.util.ToHUtils.hasText;
+import static org.tyrannyofheaven.bukkit.util.ToHUtils.log;
+import static org.tyrannyofheaven.bukkit.util.ToHUtils.sendMessage;
+import static org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils.displayPermissionException;
+
 import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
@@ -22,9 +27,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
-import org.tyrannyofheaven.bukkit.util.ToHUtils;
 import org.tyrannyofheaven.bukkit.util.permissions.PermissionException;
-import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
 
 /**
  * A Bukkit CommandExecutor implementation that ties everything together.
@@ -76,13 +79,13 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
             return true;
         }
         catch (PermissionException e) {
-            PermissionUtils.displayPermissionException(sender, e);
+            displayPermissionException(sender, e);
             return true;
         }
         catch (ParseException e) {
             // Show message if one was given
-            if (e.getMessage() != null && e.getMessage().trim().length() > 0)
-                ToHUtils.sendMessage(sender, "%s", e.getMessage());
+            if (hasText(e.getMessage()))
+                sendMessage(sender, "%s%s", ChatColor.RED, e.getMessage());
             sender.sendMessage(invChain.getUsageString(usageOptions));
             return true;
         }
@@ -92,7 +95,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
         }
         catch (Throwable t) {
             sender.sendMessage(ChatColor.RED + "Plugin error; see server log.");
-            ToHUtils.log(plugin, Level.SEVERE, "Unhandled exception:", t);
+            log(plugin, Level.SEVERE, "Unhandled exception:", t);
             return true;
         }
     }
