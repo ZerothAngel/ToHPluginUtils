@@ -23,6 +23,8 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
@@ -36,7 +38,11 @@ import org.bukkit.plugin.Plugin;
  */
 public class ToHUtils {
 
+    // Size of buffer for copyFile()
     private static final int COPY_BUFFER_SIZE = 4096;
+
+    // Cache for colorize(). Feeling kinda iffy, but Strings are immutable...
+    private static final ConcurrentMap<String, String> colorizeCache = new ConcurrentHashMap<String, String>();
 
     private ToHUtils() {
         throw new AssertionError("Don't instantiate me!");
@@ -238,7 +244,11 @@ public class ToHUtils {
      */
     public static String colorize(String text) {
         if (text == null) return null;
-        
+
+        // Works best with interned strings
+        String cacheResult = colorizeCache.get(text);
+        if (cacheResult != null) return cacheResult;
+
         StringBuilder out = new StringBuilder();
 
         ColorizeState state = ColorizeState.TEXT;
@@ -310,7 +320,10 @@ public class ToHUtils {
             throw new IllegalArgumentException("Invalid color name");
         }
 
-        return out.toString();
+        cacheResult = out.toString();
+        colorizeCache.putIfAbsent(text, cacheResult);
+
+        return cacheResult;
     }
 
 }
