@@ -65,6 +65,10 @@ public class AvajeTransactionStrategy implements TransactionStrategy {
         catch (Error e) {
             throw e;
         }
+        catch (RuntimeException e) {
+            // No need to wrap these, just re-throw
+            throw e;
+        }
         catch (Throwable t) {
             throw new TransactionException(t);
         }
