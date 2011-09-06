@@ -15,12 +15,13 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
+import static org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils.hasPermissions;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.bukkit.permissions.Permissible;
-import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
 
 /**
  * Holds a chain of CommandInvocations. Used for generating the usage string.
@@ -115,7 +116,7 @@ final class InvocationChain {
     // Tests whether the given permissible can execute this entire chain
     boolean canBeExecutedBy(Permissible permissible) {
         for (CommandInvocation ci : chain) {
-            if (!PermissionUtils.hasPermissions(permissible, ci.getCommandMetaData().isRequireAll(), ci.getCommandMetaData().getPermissions()))
+            if (!hasPermissions(permissible, ci.getCommandMetaData().isRequireAll(), ci.getCommandMetaData().getPermissions()))
                 return false;
         }
         return true;

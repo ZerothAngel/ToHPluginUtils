@@ -15,6 +15,9 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
+import static org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils.requireAllPermissions;
+import static org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils.requireOnePermission;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,11 +31,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
-import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
 
 /**
  * The main class that drives annotation-driven command parsing.
@@ -308,7 +309,7 @@ final class HandlerExecutor<T extends Plugin> {
                                 result.add(toBoolean(text));
                             }
                             catch (IllegalArgumentException e) {
-                                throw new ParseException(ChatColor.RED + "Invalid boolean: " + omd.getName());
+                                throw new ParseException("Invalid boolean: " + omd.getName());
                             }
                         }
                         else if (!omd.isOptional()) {
@@ -317,7 +318,7 @@ final class HandlerExecutor<T extends Plugin> {
                             }
                             else {
                                 // Missing positional argument
-                                throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
+                                throw new ParseException("Missing argument: " + omd.getName());
                             }
                         }
                         else {
@@ -357,7 +358,7 @@ final class HandlerExecutor<T extends Plugin> {
                             // Unwrap, see if it's a NumberFormatException
                             if (e.getCause() instanceof NumberFormatException) {
                                 // Complain
-                                throw new ParseException(ChatColor.RED + "Invalid number: " + omd.getName());
+                                throw new ParseException("Invalid number: " + omd.getName());
                             }
                             else {
                                 // Re-throw
@@ -370,7 +371,7 @@ final class HandlerExecutor<T extends Plugin> {
                     if (omd.isArgument() && !omd.isOptional()) {
                         if (!omd.isNullable()) {
                             // Missing positional argument
-                            throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
+                            throw new ParseException("Missing argument: " + omd.getName());
                         }
                     }
                     
@@ -416,14 +417,14 @@ final class HandlerExecutor<T extends Plugin> {
 
         CommandMetaData cmd = commandMap.get(name);
         if (cmd == null)
-            throw new ParseException(ChatColor.RED + "Unknown command: " + name);
+            throw new ParseException("Unknown command: " + name);
 
         // Check permissions
         if (cmd.isRequireAll()) {
-            PermissionUtils.requireAllPermissions(sender, cmd.getPermissions());
+            requireAllPermissions(sender, cmd.getPermissions());
         }
         else {
-            PermissionUtils.requireOnePermission(sender, cmd.getPermissions());
+            requireOnePermission(sender, cmd.getPermissions());
         }
 
         // Save into chain

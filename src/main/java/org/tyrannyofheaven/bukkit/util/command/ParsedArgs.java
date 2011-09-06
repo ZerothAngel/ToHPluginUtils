@@ -15,12 +15,12 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
+import static org.tyrannyofheaven.bukkit.util.ToHUtils.hasText;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.bukkit.ChatColor;
 
 /**
  * Convenience class to parse a command's arguments and store the results.
@@ -91,7 +91,7 @@ final class ParsedArgs {
                 OptionMetaData omd = getOption(arg, cmd.getFlagOptions());
                 if (omd == null) {
                     // Unknown option
-                    throw new ParseException(ChatColor.RED + "Unknown flag: " + arg);
+                    throw new ParseException("Unknown flag: " + arg);
                 }
                 // Special handling of Boolean and boolean
                 if (omd.getType() == Boolean.class || omd.getType() == Boolean.TYPE) {
@@ -102,7 +102,7 @@ final class ParsedArgs {
                     pos++;
                     if (pos >= args.length) {
                         // Premature end
-                        throw new ParseException(ChatColor.RED + "Missing value for flag: " + arg);
+                        throw new ParseException("Missing value for flag: " + arg);
                     }
                     
                     options.put(omd.getName(), args[pos]);
@@ -122,7 +122,7 @@ final class ParsedArgs {
                     }
                     else {
                         // Ran out of args
-                        throw new ParseException(ChatColor.RED + "Missing argument: " + omd.getName());
+                        throw new ParseException("Missing argument: " + omd.getName());
                     }
                 }
                 else {
@@ -150,7 +150,7 @@ final class ParsedArgs {
      * @return the associated String value
      */
     public String getOption(String name) {
-        if (name == null || name.trim().length() == 0)
+        if (!hasText(name))
             throw new IllegalArgumentException("name must have a value");
 
         return options.get(name);

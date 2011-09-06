@@ -15,6 +15,8 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
+import static org.tyrannyofheaven.bukkit.util.ToHUtils.hasText;
+
 import java.util.Arrays;
 
 /**
@@ -46,7 +48,7 @@ final class OptionMetaData implements MethodParameter {
     public OptionMetaData(String[] names, String valueName, Class<?> type, boolean optional, boolean nullable) {
         if (names == null || names.length == 0)
             throw new IllegalArgumentException("names must be given");
-        if (valueName == null || valueName.trim().length() == 0)
+        if (!hasText(valueName))
             valueName = DEFAULT_VALUE_NAME;
         if (type == null)
             throw new IllegalArgumentException("type cannot be null");

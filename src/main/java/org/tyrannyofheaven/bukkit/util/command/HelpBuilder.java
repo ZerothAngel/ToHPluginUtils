@@ -15,6 +15,8 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
+import static org.tyrannyofheaven.bukkit.util.ToHUtils.hasText;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,7 +124,7 @@ public class HelpBuilder {
      * @return this HelpBuilder
      */
     public HelpBuilder forSiblingCommand(String command, boolean usePermissions) {
-        if (command == null || command.trim().length() == 0)
+        if (!hasText(command))
             throw new IllegalArgumentException("command must have a value");
         
         // Remove last invocation (from a copy)
@@ -160,7 +162,7 @@ public class HelpBuilder {
     public HelpBuilder forHandlerAndCommand(Object handler, String command, boolean usePermissions) {
         if (handler == null)
             throw new IllegalArgumentException("handler cannot be null");
-        if (command == null || command.trim().length() == 0)
+        if (!hasText(command))
             throw new IllegalArgumentException("command must have a value");
 
         HandlerExecutor<?> he = handlerExecutor.handlerExecutorFor(handler);
