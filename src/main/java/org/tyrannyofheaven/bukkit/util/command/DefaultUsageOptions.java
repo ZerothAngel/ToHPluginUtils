@@ -37,7 +37,7 @@ public class DefaultUsageOptions implements UsageOptions {
      */
     @Override
     public String getPostamble() {
-        return ChatColor.WHITE.toString();
+        return "";
     }
 
     /* (non-Javadoc)
