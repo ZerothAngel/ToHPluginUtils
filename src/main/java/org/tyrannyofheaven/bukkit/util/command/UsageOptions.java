@@ -23,11 +23,19 @@ package org.tyrannyofheaven.bukkit.util.command;
 public interface UsageOptions {
 
     /**
-     * The usage prefix. Can be used to set starting color.
+     * The usage preamble. Can be used to set starting color.
      * 
-     * @return the usage prefix
+     * @return the usage preamble
      */
-    public String getPrefix();
+    public String getPreamble();
+
+    /**
+     * The usage postamble. Outputted at the end of the line. (After the
+     * description, if one is present.)
+     * 
+     * @return the usage postamble
+     */
+    public String getPostamble();
 
     /**
      * Starting delimiter for flags.

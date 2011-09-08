@@ -16,6 +16,7 @@
 package org.tyrannyofheaven.bukkit.util.permissions;
 
 import static org.tyrannyofheaven.bukkit.util.ToHUtils.hasText;
+import static org.tyrannyofheaven.bukkit.util.ToHUtils.sendMessage;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -140,14 +141,14 @@ public class PermissionUtils {
             throw new IllegalArgumentException("permissionException cannot be null");
 
         if (permissionException.getPermissions().size() == 1) {
-            sender.sendMessage(ChatColor.RED + "You need the following permission to do this:");
-            sender.sendMessage(ChatColor.DARK_GREEN + "- " + permissionException.getPermissions().get(0));
+            sendMessage(sender, ChatColor.RED + "You need the following permission to do this:");
+            sendMessage(sender, ChatColor.DARK_GREEN + "- " + permissionException.getPermissions().get(0));
         }
         else {
-            sender.sendMessage(ChatColor.RED + String.format("You need %s of the following permissions to do this:",
-                    permissionException.isAll() ? "all" : "one"));
+            sendMessage(sender, ChatColor.RED + "You need %s of the following permissions to do this:",
+                    permissionException.isAll() ? "all" : "one");
             for (String permission : permissionException.getPermissions()) {
-                sender.sendMessage(ChatColor.DARK_GREEN + "- " + permission);
+                sendMessage(sender, ChatColor.DARK_GREEN + "- " + permission);
             }
         }
     }
