@@ -55,7 +55,7 @@ final class InvocationChain {
         boolean first = true;
         
         StringBuilder usage = new StringBuilder();
-        usage.append(usageOptions.getPrefix());
+        usage.append(usageOptions.getPreamble());
         for (Iterator<CommandInvocation> i = chain.iterator(); i.hasNext();) {
             CommandInvocation ci = i.next();
             if (first) {
@@ -110,6 +110,8 @@ final class InvocationChain {
             }
         }
         
+        usage.append(usageOptions.getPostamble());
+
         return usage.toString();
     }
 

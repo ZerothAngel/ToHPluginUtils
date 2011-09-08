@@ -41,6 +41,8 @@ public class ToHUtils {
     // Size of buffer for copyFile()
     private static final int COPY_BUFFER_SIZE = 4096;
 
+    private static final ChatColor DEFAULT_COLOR = ChatColor.WHITE;
+
     // Cache for colorize(). Feeling kinda iffy, but Strings are immutable...
     private static final ConcurrentMap<String, String> colorizeCache = new ConcurrentHashMap<String, String>();
 
@@ -142,7 +144,7 @@ public class ToHUtils {
     public static void sendMessage(CommandSender sender, String format, Object... args) {
         String message = String.format(format, args);
         for (String line : message.split("\n")) {
-            sender.sendMessage(line);
+            sender.sendMessage(line + DEFAULT_COLOR);
         }
     }
 

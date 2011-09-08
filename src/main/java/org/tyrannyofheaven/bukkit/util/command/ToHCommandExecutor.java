@@ -86,7 +86,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
             // Show message if one was given
             if (hasText(e.getMessage()))
                 sendMessage(sender, "%s%s", ChatColor.RED, e.getMessage());
-            sender.sendMessage(invChain.getUsageString(usageOptions));
+            sendMessage(sender, invChain.getUsageString(usageOptions));
             return true;
         }
         catch (Error e) {
@@ -94,7 +94,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
             throw e;
         }
         catch (Throwable t) {
-            sender.sendMessage(ChatColor.RED + "Plugin error; see server log.");
+            sendMessage(sender, ChatColor.RED + "Plugin error; see server log.");
             log(plugin, Level.SEVERE, "Unhandled exception:", t);
             return true;
         }

@@ -28,8 +28,16 @@ public class DefaultUsageOptions implements UsageOptions {
      * @see org.tyrannyofheaven.bukkit.util.command.UsageOptions#getPrefix()
      */
     @Override
-    public String getPrefix() {
+    public String getPreamble() {
         return ChatColor.GREEN.toString();
+    }
+
+    /* (non-Javadoc)
+     * @see org.tyrannyofheaven.bukkit.util.command.UsageOptions#getPostamble()
+     */
+    @Override
+    public String getPostamble() {
+        return ChatColor.WHITE.toString();
     }
 
     /* (non-Javadoc)
