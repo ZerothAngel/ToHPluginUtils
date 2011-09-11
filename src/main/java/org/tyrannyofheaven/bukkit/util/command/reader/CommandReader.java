@@ -33,7 +33,6 @@ public class CommandReader {
      * @param server the Server instance
      * @param sender who to execute the commands as
      * @param file the file to read commands from
-     * @param echo true if commands should be echoed back to sender
      * @throws IOException upon I/O error
      */
     public static boolean read(Server server, CommandSender sender, File file) throws IOException {
@@ -46,7 +45,6 @@ public class CommandReader {
      * @param server the Server instance
      * @param sender who to execute the commands as
      * @param input InputStream for commands
-     * @param echo true if commands should be echoed back to sender
      * @throws IOException upon I/O error
      */
     public static boolean read(Server server, CommandSender sender, InputStream input) throws IOException {
