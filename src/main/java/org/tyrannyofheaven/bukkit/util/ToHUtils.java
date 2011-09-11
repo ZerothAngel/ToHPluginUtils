@@ -183,7 +183,7 @@ public class ToHUtils {
      * @return the delimited string
      */
     public static String delimitedString(String delimiter, Object... objs) {
-        return delimitedString(delimiter, Arrays.asList(new Object[objs.length]));
+        return delimitedString(delimiter, Arrays.asList(objs));
     }
 
     /**
