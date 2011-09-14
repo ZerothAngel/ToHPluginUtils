@@ -18,7 +18,9 @@ import java.util.List;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Utility class to read a file containing commands and execute them.
@@ -33,10 +35,11 @@ public class CommandReader {
      * @param server the Server instance
      * @param sender who to execute the commands as
      * @param file the file to read commands from
+     * @param plugins Zero or more plugins to restrict the commands to
      * @throws IOException upon I/O error
      */
-    public static boolean read(Server server, CommandSender sender, File file) throws IOException {
-        return read(server, sender, file, true);
+    public static boolean read(Server server, CommandSender sender, File file, Plugin... plugins) throws IOException {
+        return read(server, sender, file, true, plugins);
     }
     
     /**
@@ -45,10 +48,11 @@ public class CommandReader {
      * @param server the Server instance
      * @param sender who to execute the commands as
      * @param input InputStream for commands
+     * @param plugins Zero or more plugins to restrict the commands to
      * @throws IOException upon I/O error
      */
-    public static boolean read(Server server, CommandSender sender, InputStream input) throws IOException {
-        return read(server, sender, input, true);
+    public static boolean read(Server server, CommandSender sender, InputStream input, Plugin...plugins) throws IOException {
+        return read(server, sender, input, true, plugins);
     }
 
     /**
@@ -58,11 +62,35 @@ public class CommandReader {
      * @param sender who to execute the commands as
      * @param file the file to read commands from
      * @param echo true if commands should be echoed back to sender
+     * @param plugins Zero or more plugins to restrict the commands to
      * @return true if all commands executed successfully
      * @throws IOException upon I/O error
      */
-    public static boolean read(Server server, CommandSender sender, File file, boolean echo) throws IOException {
-        return read(server, sender, new FileInputStream(file), echo);
+    public static boolean read(Server server, CommandSender sender, File file, boolean echo, Plugin... plugins) throws IOException {
+        return read(server, sender, new FileInputStream(file), echo, plugins);
+    }
+
+    private static Command getCommand(Server server, String name, Plugin... plugins) {
+        name = name.toLowerCase();
+
+        PluginCommand command = server.getPluginCommand(name);
+        
+        if (plugins == null || plugins.length == 0) {
+            // No restrictions
+            return command;
+        }
+        
+        // Find a match among specified plugins
+        for (Plugin plugin : plugins) {
+            // Same logic as JavaPlugin#getCommand()
+            if (command != null && command.getPlugin() != plugin)
+                command = server.getPluginCommand(String.format("%s:%s", plugin.getDescription().getName(), name));
+            
+            if (command != null && command.getPlugin() == plugin)
+                return command;
+        }
+        
+        return null;
     }
 
     /**
@@ -72,10 +100,11 @@ public class CommandReader {
      * @param sender who to execute the commands as
      * @param input InputStream for commands
      * @param echo true if commands should be echoed back to sender
+     * @param plugins Zero or more plugins to restrict the commands to
      * @return true if all commands executed successfully
      * @throws IOException upon I/O error
      */
-    public static boolean read(Server server, CommandSender sender, InputStream input, boolean echo) throws IOException {
+    public static boolean read(Server server, CommandSender sender, InputStream input, boolean echo, Plugin... plugins) throws IOException {
         List<CommandCall> calls = new ArrayList<CommandCall>();
 
         // Read entire stream before executing anything
@@ -99,7 +128,7 @@ public class CommandReader {
                 if (c.startsWith("/"))
                     c = c.substring(1);
                 
-                Command command = server.getPluginCommand(c);
+                Command command = getCommand(server, c, plugins);
                 if (command == null) {
                     throw new CommandReaderException(String.format("Unknown command at line %d", lineNo));
                 }
