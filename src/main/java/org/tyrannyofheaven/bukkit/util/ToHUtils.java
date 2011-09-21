@@ -29,6 +29,9 @@ import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.Listener;
+import org.bukkit.event.Event.Priority;
+import org.bukkit.event.Event.Type;
 import org.bukkit.plugin.Plugin;
 
 /**
@@ -324,6 +327,29 @@ public class ToHUtils {
         colorizeCache.putIfAbsent(text, cacheResult);
 
         return cacheResult;
+    }
+
+    /**
+     * Registers an event by name to the given executor.
+     * 
+     * @param type name of the Event.Type enum
+     * @param listener Listener to register
+     * @param priority Priority of this listener
+     * @param plugin owning Plugin
+     * @return true if successfully registered
+     */
+    public static boolean registerEvent(String type, Listener listener, Priority priority, Plugin plugin) {
+        Type eventType;
+        try {
+            eventType = Type.valueOf(type);
+        }
+        catch (IllegalArgumentException e) {
+            log(plugin, Level.SEVERE, "Unknown event type: %s", type, e);
+            return false;
+        }
+
+        plugin.getServer().getPluginManager().registerEvent(eventType, listener, priority, plugin);
+        return true;
     }
 
 }
