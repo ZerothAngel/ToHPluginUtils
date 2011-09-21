@@ -29,11 +29,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.WeakHashMap;
 
 import org.bukkit.Server;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * The main class that drives annotation-driven command parsing.
@@ -53,6 +57,8 @@ final class HandlerExecutor<T extends Plugin> {
     private final Map<String, CommandMetaData> commandMap = new HashMap<String, CommandMetaData>();
 
     private final Map<Object, HandlerExecutor<T>> subCommandMap = new WeakHashMap<Object, HandlerExecutor<T>>();
+
+    private final Set<String> commandList = new TreeSet<String>();
 
     static {
         // Build map of primitives to primitive wrappers
@@ -249,6 +255,10 @@ final class HandlerExecutor<T extends Plugin> {
                             throw new CommandException("Duplicate command: " + commandName);
                         }
                     }
+                    
+                    // Track unaliased name for easy registration
+                    // Dupes would have been handled above
+                    commandList.add(command.value()[0]);
                 }
             }
         }
@@ -482,6 +492,17 @@ final class HandlerExecutor<T extends Plugin> {
     // Create a HelpBuilder associated with this HandlerExecutor
     HelpBuilder getHelpBuilder(InvocationChain rootInvocationChain) {
         return new HelpBuilder(this, rootInvocationChain, usageOptions);
+    }
+
+    // Register top-level commands
+    void registerCommands(CommandExecutor executor) {
+        for (String name : commandList) {
+            PluginCommand command = ((JavaPlugin)plugin).getCommand(name);
+            if (command == null) {
+                throw new CommandException("Unregistered command: " + name);
+            }
+            command.setExecutor(executor);
+        }
     }
 
 }
