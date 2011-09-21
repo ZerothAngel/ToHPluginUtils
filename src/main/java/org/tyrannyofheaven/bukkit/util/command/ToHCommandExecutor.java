@@ -57,6 +57,13 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
         rootHandlerExecutor = new HandlerExecutor<T>(plugin, usageOptions, handlers);
     }
 
+    /**
+     * Register top-level commands with the server.
+     */
+    public void registerCommands() {
+        rootHandlerExecutor.registerCommands(this);
+    }
+
     public void setUsageOptions(UsageOptions usageOptions) {
         if (usageOptions == null)
             throw new IllegalArgumentException("usageOptions cannot be null");
