@@ -233,7 +233,7 @@ public class ToHUtils {
 
     // For colorize()
     private static enum ColorizeState {
-        TEXT, COLOR_OPEN, COLOR_NAME, COLOR_CLOSE;
+        TEXT, COLOR_OPEN, COLOR_NAME, COLOR_CLOSE, COLOR_ESCAPE;
     }
 
     /**
@@ -266,6 +266,9 @@ public class ToHUtils {
                 }
                 else if (c == '}') {
                     state = ColorizeState.COLOR_CLOSE;
+                }
+                else if (c == '`') {
+                    state = ColorizeState.COLOR_ESCAPE;
                 }
                 else {
                     out.append(c);
@@ -312,6 +315,12 @@ public class ToHUtils {
                 }
                 state = ColorizeState.TEXT;
             }
+            else if (state == ColorizeState.COLOR_ESCAPE) {
+                out.append(decodeColor(c));
+                state = ColorizeState.TEXT;
+            }
+            else
+                throw new AssertionError("Unknown ColorizeState");
         }
         
         // End of string
@@ -327,6 +336,48 @@ public class ToHUtils {
         colorizeCache.putIfAbsent(text, cacheResult);
 
         return cacheResult;
+    }
+
+    // Decode a color escape code. Same mapping as sk89q's plugins.
+    private static String decodeColor(char c) {
+        switch (c) {
+        case '`':
+            return "`";
+        case '0':
+            return ChatColor.BLACK.toString();
+        case '1':
+            return ChatColor.GRAY.toString();
+        case '2':
+            return ChatColor.DARK_GRAY.toString();
+        case 'b':
+            return ChatColor.BLUE.toString();
+        case 'B':
+            return ChatColor.DARK_BLUE.toString();
+        case 'c':
+            return ChatColor.AQUA.toString();
+        case 'C':
+            return ChatColor.DARK_AQUA.toString();
+        case 'g':
+            return ChatColor.GREEN.toString();
+        case 'G':
+            return ChatColor.DARK_GREEN.toString();
+        case 'p':
+            return ChatColor.LIGHT_PURPLE.toString();
+        case 'P':
+            return ChatColor.DARK_PURPLE.toString();
+        case 'r':
+            return ChatColor.RED.toString();
+        case 'R':
+            return ChatColor.DARK_RED.toString();
+        case 'w':
+            return ChatColor.WHITE.toString();
+        case 'y':
+            return ChatColor.YELLOW.toString();
+        case 'Y':
+            return ChatColor.GOLD.toString();
+        default:
+            throw new IllegalArgumentException("Invalid color code");
+        }
     }
 
     /**

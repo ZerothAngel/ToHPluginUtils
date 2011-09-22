@@ -93,4 +93,38 @@ public class ToHUtilsTest {
         assertEquals("foo, bar, garply", ToHUtils.delimitedString(", ", "foo", "bar", "garply"));
     }
 
+    @Test
+    public void testColorizeEscapeCode() {
+        assertEquals(ChatColor.BLUE + "hello world", colorize("`bhello world"));
+        assertEquals("hello world" + ChatColor.DARK_AQUA, colorize("hello world`C"));
+        assertEquals("hello" + ChatColor.BLACK + " world", colorize("hello`0 world"));
+    }
+
+    @Test
+    public void testColorizeEscapeCodeEscape() {
+        assertEquals("hello `world", colorize("hello ``world"));
+    }
+
+    @Test
+    public void testColorizeEscapeCodeInvalid1() {
+        try {
+            colorize("hello `Hworld");
+        }
+        catch (IllegalArgumentException e) {
+            return;
+        }
+        fail();
+    }
+
+    @Test
+    public void testColorizeEscapeCodeInvalid2() {
+        try {
+            colorize("hello world`");
+        }
+        catch (IllegalArgumentException e) {
+            return;
+        }
+        fail();
+    }
+
 }
