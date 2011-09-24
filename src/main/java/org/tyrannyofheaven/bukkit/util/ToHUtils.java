@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -111,7 +112,20 @@ public class ToHUtils {
 
     // Create a log message
     private static String createLogMessage(Plugin plugin, String format, Object... args) {
-        return String.format("[%s] %s", plugin.getDescription().getName(), String.format(format, args));
+        if (format == null)
+            return null;
+        else
+            return String.format("[%s] %s", plugin.getDescription().getName(), String.format(format, args));
+    }
+
+    /**
+     * Retrieve logger for this plugin.
+     * 
+     * @param plugin the plugin
+     * @return the logger associated with this plugin
+     */
+    public static Logger getLogger(Plugin plugin) {
+        return Logger.getLogger(plugin.getClass().getName());
     }
 
     /**
@@ -125,12 +139,15 @@ public class ToHUtils {
      *   It will not be available for the format.
      */
     public static void log(Plugin plugin, Level level, String format, Object... args) {
-        if (args.length > 0 && args[args.length - 1] instanceof Throwable) {
-            // Last argument is a Throwable, treat accordingly
-            plugin.getServer().getLogger().log(level, createLogMessage(plugin, format, Arrays.copyOf(args, args.length - 1)), (Throwable)args[args.length - 1]);
-        }
-        else {
-            plugin.getServer().getLogger().log(level, createLogMessage(plugin, format, args));
+        Logger logger = getLogger(plugin);
+        if (logger.isLoggable(level)) { // Avoid unnecessary String.format() calls
+            if (args.length > 0 && args[args.length - 1] instanceof Throwable) {
+                // Last argument is a Throwable, treat accordingly
+                logger.log(level, createLogMessage(plugin, format, Arrays.copyOf(args, args.length - 1)), (Throwable)args[args.length - 1]);
+            }
+            else {
+                logger.log(level, createLogMessage(plugin, format, args));
+            }
         }
     }
 
