@@ -102,7 +102,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
         }
         catch (Throwable t) {
             sendMessage(sender, ChatColor.RED + "Plugin error; see server log.");
-            log(plugin, Level.SEVERE, "Unhandled exception:", t);
+            log(plugin, Level.SEVERE, "Command handler exception:", t);
             return true;
         }
     }
