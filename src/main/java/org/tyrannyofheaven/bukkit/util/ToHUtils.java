@@ -118,13 +118,8 @@ public class ToHUtils {
             return String.format("[%s] %s", plugin.getDescription().getName(), String.format(format, args));
     }
 
-    /**
-     * Retrieve logger for this plugin.
-     * 
-     * @param plugin the plugin
-     * @return the logger associated with this plugin
-     */
-    public static Logger getLogger(Plugin plugin) {
+    // Retrieve logger associated with a plugin
+    private static Logger getLogger(Plugin plugin) {
         return Logger.getLogger(plugin.getClass().getName());
     }
 
