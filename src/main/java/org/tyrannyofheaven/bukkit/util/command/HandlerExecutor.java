@@ -164,7 +164,7 @@ final class HandlerExecutor<T extends Plugin> {
                         }
                         else if (paramType.isArray() && paramType.getComponentType() == String.class) {
                             if (hasRest) {
-                                throw new CommandException("Method already has a String[] parameter");
+                                throw new CommandException("Method already has a String[] parameter (%s#%s)", handler.getClass().getName(), method.getName());
                             }
 
                             ma = new SpecialParameter(SpecialParameter.Type.REST);
@@ -185,7 +185,7 @@ final class HandlerExecutor<T extends Plugin> {
 
                             // Both must not be present
                             if (optAnn != null && sessAnn != null) {
-                                throw new CommandException("Parameter cannot have both @Option and @Session annotations");
+                                throw new CommandException("Parameter cannot have both @Option and @Session annotations (%s#%s)", handler.getClass().getName(), method.getName());
                             }
                             else if (sessAnn != null) {
                                 // @Session
@@ -196,7 +196,7 @@ final class HandlerExecutor<T extends Plugin> {
                                 
                                 // Supported parameter type?
                                 if (!supportedParameterTypes.contains(paramType)) {
-                                    throw new CommandException("Unsupported parameter type: " + paramType);
+                                    throw new CommandException("Unsupported parameter type: %s (%s#%s)", paramType, handler.getClass().getName(), method.getName());
                                 }
 
                                 ma = new OptionMetaData(optAnn.value(), optAnn.valueName(), paramType, optAnn.optional(), optAnn.nullable());
@@ -207,14 +207,14 @@ final class HandlerExecutor<T extends Plugin> {
                                 // Is it a String parameter?
                                 if (paramType == String.class) {
                                     if (hasLabel) {
-                                        throw new CommandException("Method already has an unannotated String parameter");
+                                        throw new CommandException("Method already has an unannotated String parameter (%s#%s)", handler.getClass().getName(), method.getName());
                                     }
                                     
                                     ma = new SpecialParameter(SpecialParameter.Type.LABEL);
                                     hasLabel = true;
                                 }
                                 else
-                                    throw new CommandException("Non-special parameters must be annotated with @Option");
+                                    throw new CommandException("Non-special parameters must be annotated with @Option (%s#%s)", handler.getClass().getName(), method.getName());
                             }
                         }
                         
@@ -237,14 +237,14 @@ final class HandlerExecutor<T extends Plugin> {
                                 positional = true;
                             }
                             else if (positional) {
-                                throw new CommandException("Optional parameters must follow all non-optional ones");
+                                throw new CommandException("Optional parameters must follow all non-optional ones (%s#%s)", handler.getClass().getName(), method.getName());
                             }
                             
                             if (!omd.isNullable()) {
                                 nonNullable = true;
                             }
                             else if (nonNullable) {
-                                throw new CommandException("Nullable parameters must follow all non-nullable ones");
+                                throw new CommandException("Nullable parameters must follow all non-nullable ones (%s#%s)", handler.getClass().getName(), method.getName());
                             }
                         }
                     }
@@ -252,7 +252,7 @@ final class HandlerExecutor<T extends Plugin> {
                     CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll, command.description());
                     for (String commandName : command.value()) {
                         if (commandMap.put(commandName, cmd) != null) {
-                            throw new CommandException("Duplicate command: " + commandName);
+                            throw new CommandException("Duplicate command: %s (%s#%s)", commandName, handler.getClass().getName(), method.getName());
                         }
                     }
                     
@@ -319,7 +319,7 @@ final class HandlerExecutor<T extends Plugin> {
                                 result.add(toBoolean(text));
                             }
                             catch (IllegalArgumentException e) {
-                                throw new ParseException("Invalid boolean: " + omd.getName());
+                                throw new ParseException("Invalid boolean: %s", omd.getName());
                             }
                         }
                         else if (!omd.isOptional()) {
@@ -328,7 +328,7 @@ final class HandlerExecutor<T extends Plugin> {
                             }
                             else {
                                 // Missing positional argument
-                                throw new ParseException("Missing argument: " + omd.getName());
+                                throw new ParseException("Missing argument: %s", omd.getName());
                             }
                         }
                         else {
@@ -368,7 +368,7 @@ final class HandlerExecutor<T extends Plugin> {
                             // Unwrap, see if it's a NumberFormatException
                             if (e.getCause() instanceof NumberFormatException) {
                                 // Complain
-                                throw new ParseException("Invalid number: " + omd.getName());
+                                throw new ParseException("Invalid number: %s", omd.getName());
                             }
                             else {
                                 // Re-throw
@@ -381,7 +381,7 @@ final class HandlerExecutor<T extends Plugin> {
                     if (omd.isArgument() && !omd.isOptional()) {
                         if (!omd.isNullable()) {
                             // Missing positional argument
-                            throw new ParseException("Missing argument: " + omd.getName());
+                            throw new ParseException("Missing argument: %s", omd.getName());
                         }
                     }
                     
@@ -427,7 +427,7 @@ final class HandlerExecutor<T extends Plugin> {
 
         CommandMetaData cmd = commandMap.get(name);
         if (cmd == null)
-            throw new ParseException("Unknown command: " + name);
+            throw new ParseException("Unknown command: %s", name);
 
         // Check permissions
         if (cmd.isRequireAll()) {
@@ -499,7 +499,7 @@ final class HandlerExecutor<T extends Plugin> {
         for (String name : commandList) {
             PluginCommand command = ((JavaPlugin)plugin).getCommand(name);
             if (command == null) {
-                throw new CommandException("Unregistered command: " + name);
+                throw new CommandException("Unregistered command: %s", name);
             }
             command.setExecutor(executor);
         }
