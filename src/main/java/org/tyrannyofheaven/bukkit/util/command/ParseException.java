@@ -32,4 +32,8 @@ public class ParseException extends CommandException {
         super(message);
     }
 
+    public ParseException(String format, Object... args) {
+        super(format, args);
+    }
+
 }
