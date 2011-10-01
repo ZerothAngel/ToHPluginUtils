@@ -1,6 +1,6 @@
-# ToHUtils - ZerothAngel's Bukkit plugin library #
+# ToHPluginUtils - ZerothAngel's Bukkit plugin library #
 
-**DO NOT USE &mdash; UNSTABLE**
+**DO NOT USE &mdash; STILL UNSTABLE**
 
 This is my personal library for [Bukkit](http://bukkit.org/) plugins. Heavily
 inspired by elements of the [Spring Framework](http://www.springsource.org/)
@@ -55,8 +55,7 @@ And some non-command-line-parsing features:
 
 *   Programmatic permission checking which will throw an exception if the
     permission check fails. The library's CommandExecutor will automatically
-    display a helpful error message. *TODO* Config option to print terse error
-    message.
+    display a helpful error message.
 
 *   Abstraction of transaction handling. Makes it easy to switch DAOs from say,
     Avaje Ebeans to JDBC to YAML.
@@ -84,3 +83,22 @@ This library is used in most of my Bukkit plugins:
 *   Excursion
 *   BoatControl
 *   A few other unpublished plugins
+
+## To Do ##
+
+*   Perhaps add an option to make permission error messages more terse. (They
+    currently display the required permissions.) Security conscious people might
+    favor giving as little information to the user as possible, but I'm still
+    not sure how beneficial this would be. A plugin's permission nodes should
+    generally be well-documented, right? So what's the point of hiding them...
+
+*   Configuration parsing seems a bit boilerplate. Maybe something can be
+    abstracted out?
+
+*   A JdbcTransactionStrategy. Would probably also mean the library needs to
+    provide a method to get JDBC connections (that are already in a
+    transaction). Not a fan of going down this road since that means I'd be
+    writing SQL to specific databases (for anything moderately complex).
+
+*   Logging seems to have become boilerplate. Maybe ToHUtils needs debug(),
+    warn(), error()?
