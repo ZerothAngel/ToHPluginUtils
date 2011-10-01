@@ -18,7 +18,8 @@ package org.tyrannyofheaven.bukkit.util;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.fail;
-import static org.tyrannyofheaven.bukkit.util.ToHUtils.colorize;
+import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.delimitedString;
+import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.colorize;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -87,10 +88,10 @@ public class ToHUtilsTest {
 
     @Test
     public void testDelimitedString() {
-        assertEquals("blah", ToHUtils.delimitedString(", ", (List<String>)Collections.singletonList("blah")));
-        assertEquals("foo, bar, garply", ToHUtils.delimitedString(", ", Arrays.asList(new String[] { "foo", "bar", "garply"})));
-        assertEquals("blah", ToHUtils.delimitedString(", ", "blah"));
-        assertEquals("foo, bar, garply", ToHUtils.delimitedString(", ", "foo", "bar", "garply"));
+        assertEquals("blah", delimitedString(", ", (List<String>)Collections.singletonList("blah")));
+        assertEquals("foo, bar, garply", delimitedString(", ", Arrays.asList(new String[] { "foo", "bar", "garply"})));
+        assertEquals("blah", delimitedString(", ", "blah"));
+        assertEquals("foo, bar, garply", delimitedString(", ", "foo", "bar", "garply"));
     }
 
     @Test

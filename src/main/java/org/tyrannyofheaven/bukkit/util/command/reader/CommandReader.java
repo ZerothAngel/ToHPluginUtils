@@ -1,9 +1,9 @@
 package org.tyrannyofheaven.bukkit.util.command.reader;
 
-import static org.tyrannyofheaven.bukkit.util.ToHUtils.colorize;
-import static org.tyrannyofheaven.bukkit.util.ToHUtils.delimitedString;
-import static org.tyrannyofheaven.bukkit.util.ToHUtils.hasText;
-import static org.tyrannyofheaven.bukkit.util.ToHUtils.sendMessage;
+import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.colorize;
+import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.delimitedString;
+import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
+import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.sendMessage;
 
 import java.io.BufferedReader;
 import java.io.File;

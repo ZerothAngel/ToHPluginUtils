@@ -15,7 +15,7 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
-import static org.tyrannyofheaven.bukkit.util.ToHUtils.hasText;
+import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
 
 import java.util.Arrays;
 import java.util.HashMap;
