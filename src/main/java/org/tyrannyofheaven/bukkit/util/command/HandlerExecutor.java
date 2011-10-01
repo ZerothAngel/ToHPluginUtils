@@ -249,7 +249,7 @@ final class HandlerExecutor<T extends Plugin> {
                         }
                     }
 
-                    CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll, command.description());
+                    CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll, command.description(), hasRest ? command.varargs() : null);
                     for (String commandName : command.value()) {
                         if (commandMap.put(commandName, cmd) != null) {
                             throw new CommandException("Duplicate command: %s (%s#%s)", commandName, handler.getClass().getName(), method.getName());

@@ -88,4 +88,18 @@ public interface UsageOptions {
      */
     public String getDescriptionDelimiter();
 
+    /**
+     * Starting delimiter for varargs parameter.
+     * 
+     * @return delimiter string
+     */
+    public String getVarargsStart();
+
+    /**
+     * Ending delimiter for varargs parameter.
+     * 
+     * @return delimiter string
+     */
+    public String getVarargsEnd();
+
 }
