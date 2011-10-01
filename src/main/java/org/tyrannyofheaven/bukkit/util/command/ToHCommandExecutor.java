@@ -15,12 +15,10 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
-import static org.tyrannyofheaven.bukkit.util.ToHUtils.hasText;
-import static org.tyrannyofheaven.bukkit.util.ToHUtils.log;
-import static org.tyrannyofheaven.bukkit.util.ToHUtils.sendMessage;
+import static org.tyrannyofheaven.bukkit.util.ToHLoggingUtils.error;
+import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
+import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.sendMessage;
 import static org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils.displayPermissionException;
-
-import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -102,7 +100,7 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
         }
         catch (Throwable t) {
             sendMessage(sender, ChatColor.RED + "Plugin error; see server log.");
-            log(plugin, Level.SEVERE, "Command handler exception:", t);
+            error(plugin, "Command handler exception:", t);
             return true;
         }
     }

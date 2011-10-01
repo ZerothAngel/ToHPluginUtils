@@ -15,8 +15,8 @@
  */
 package org.tyrannyofheaven.bukkit.util.permissions;
 
-import static org.tyrannyofheaven.bukkit.util.ToHUtils.hasText;
-import static org.tyrannyofheaven.bukkit.util.ToHUtils.sendMessage;
+import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
+import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.sendMessage;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
