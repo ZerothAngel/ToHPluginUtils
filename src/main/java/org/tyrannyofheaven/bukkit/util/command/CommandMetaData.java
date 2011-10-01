@@ -42,6 +42,8 @@ final class CommandMetaData {
 
     private final String description;
 
+    private final String rest;
+
     private final List<OptionMetaData> flagOptions;
     
     private final List<OptionMetaData> positionalArguments;
@@ -55,7 +57,7 @@ final class CommandMetaData {
      * @param permissions required permissions, if any
      * @param requireAll true if all permissions are required
      */
-    public CommandMetaData(Object handler, Method method, List<MethodParameter> options, String[] permissions, boolean requireAll, String description) {
+    public CommandMetaData(Object handler, Method method, List<MethodParameter> options, String[] permissions, boolean requireAll, String description, String rest) {
         if (handler == null)
             throw new IllegalArgumentException("handler cannot be null");
         if (method == null)
@@ -67,12 +69,15 @@ final class CommandMetaData {
             permissions = new String[0];
         if (!hasText(description))
             description = null;
+        if (!hasText(rest))
+            rest = null;
 
         this.handler = handler;
         this.method = method;
         this.permissions = Arrays.copyOf(permissions, permissions.length);
         this.requireAll = requireAll;
         this.description = description;
+        this.rest = rest;
 
         this.parameters = Collections.unmodifiableList(new ArrayList<MethodParameter>(options));
         
@@ -165,6 +170,15 @@ final class CommandMetaData {
      */
     public String getDescription() {
         return description;
+    }
+
+    /**
+     * Returns the description of the varargs parameter.
+     * 
+     * @return the description of the varargs parameter
+     */
+    public String getRest() {
+        return rest;
     }
 
 }

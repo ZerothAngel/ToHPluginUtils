@@ -50,4 +50,9 @@ public @interface Command {
      */
     public String description() default "";
 
+    /**
+     * Description of the varargs (String[]) parameter when showing help.
+     */
+    public String varargs() default "";
+
 }

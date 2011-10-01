@@ -96,6 +96,13 @@ final class InvocationChain {
                 }
             }
             
+            // Add varargs description, if any
+            if (cmd.getRest() != null) {
+                usage.append(usageOptions.getVarargsStart());
+                usage.append(cmd.getRest());
+                usage.append(usageOptions.getVarargsEnd());
+            }
+
             if (i.hasNext())
                 usage.append(' ');
         }

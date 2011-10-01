@@ -102,4 +102,20 @@ public class DefaultUsageOptions implements UsageOptions {
         return " " + ChatColor.WHITE + "- ";
     }
 
+    /* (non-Javadoc)
+     * @see org.tyrannyofheaven.bukkit.util.command.UsageOptions#getVarargsEnd()
+     */
+    @Override
+    public String getVarargsEnd() {
+        return "]" + ChatColor.GREEN;
+    }
+
+    /* (non-Javadoc)
+     * @see org.tyrannyofheaven.bukkit.util.command.UsageOptions#getVarargsStart()
+     */
+    @Override
+    public String getVarargsStart() {
+        return " " + ChatColor.AQUA + "[";
+    }
+
 }
