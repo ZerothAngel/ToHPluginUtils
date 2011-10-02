@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Convenience methods mainly for displaying info via {@link CommandSender#sendMessage(String)}.
@@ -211,11 +212,11 @@ public class ToHMessageUtils {
      * @return number of users who received the message. In the case of a multi-line
      *   message, this is the number of users who received the last line.
      */
-    public static int broadcast(Server server, String permission, String format, Object... args) {
+    public static int broadcast(Plugin plugin, String permission, String format, Object... args) {
         String message = String.format(format, args);
         int count = 0;
         for (String line : message.split("\n")) {
-            count = server.broadcast(line, permission);
+            count = plugin.getServer().broadcast(line, permission);
         }
         return count;
     }
@@ -230,8 +231,22 @@ public class ToHMessageUtils {
      * @return number of users who received the message. In the case of a multi-line
      *   message, this is the number of users who received the last line.
      */
-    public static int broadcastMessage(Server server, String format, Object... args) {
-        return broadcast(server, Server.BROADCAST_CHANNEL_USERS, format, args);
+    public static int broadcastMessage(Plugin plugin, String format, Object... args) {
+        return broadcast(plugin, Server.BROADCAST_CHANNEL_USERS, format, args);
+    }
+
+    /**
+     * Broadcasts the message to all admins. Supports {@link String#format(String, Object...)}
+     * formatting and multiple lines.
+     * 
+     * @param server the server
+     * @param format the message format
+     * @param args format args
+     * @return number of users who received the message. In the case of a multi-line
+     *   message, this is the number of users who received the last line.
+     */
+    public static int broadcastAdmin(Plugin plugin, String format, Object... args) {
+        return broadcast(plugin, Server.BROADCAST_CHANNEL_ADMINISTRATIVE, format, args);
     }
 
 }
