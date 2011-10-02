@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 
 /**
@@ -197,6 +198,40 @@ public class ToHMessageUtils {
         default:
             throw new IllegalArgumentException("Invalid color code");
         }
+    }
+
+    /**
+     * Broadcasts the message to every user with the given permission. Supports
+     * {@link String#format(String, Object...)} formatting and multiple lines.
+     * 
+     * @param server the server
+     * @param permission the permission required to receive the broadcast
+     * @param format the message format
+     * @param args format args
+     * @return number of users who received the message. In the case of a multi-line
+     *   message, this is the number of users who received the last line.
+     */
+    public static int broadcast(Server server, String permission, String format, Object... args) {
+        String message = String.format(format, args);
+        int count = 0;
+        for (String line : message.split("\n")) {
+            count = server.broadcast(line, permission);
+        }
+        return count;
+    }
+
+    /**
+     * Broadcasts the message to all players. Supports {@link String#format(String, Object...)}
+     * formatting and multiple lines.
+     * 
+     * @param server the server
+     * @param format the message format
+     * @param args format args
+     * @return number of users who received the message. In the case of a multi-line
+     *   message, this is the number of users who received the last line.
+     */
+    public static int broadcastMessage(Server server, String format, Object... args) {
+        return broadcast(server, Server.BROADCAST_CHANNEL_USERS, format, args);
     }
 
 }
