@@ -26,16 +26,16 @@ Some things to notice:
     all or just one permission is required.
 
 *   Command arguments and switches are automatically parsed and passed as
-    arguments. The library will automatically recognize certain
+    method arguments. The library will automatically recognize certain
     parameter types such as CommandSender, Server, or your Plugin type.
 	Other types (annotated with @Option) receive values from the user.
 
 *   Not evident above, but the library will also automatically generate the
      'usage' string for each command. For example:
 	 
-    /promote &lt;player> [track]
+        /promote <player> [track]
 
-    I decided to stick mainly with POSIX command-line conventions (all options
+    I decided to stick mainly with POSIX command-line conventions (e.g. all options
     must come before positional arguments). The order of the method's parameters
     play a role in determining the expected order of the positional arguments.
 
