@@ -17,8 +17,12 @@ package org.tyrannyofheaven.bukkit.util;
 
 import static org.tyrannyofheaven.bukkit.util.ToHLoggingUtils.log;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
+import org.bukkit.Material;
 import org.bukkit.event.Listener;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event.Type;
@@ -30,6 +34,18 @@ import org.bukkit.plugin.Plugin;
  * @author asaddi
  */
 public class ToHUtils {
+
+    private static final Map<String, Material> materialMap;
+
+    static {
+        // Build materialMap consisting of lowercased names without underscores
+        Map<String, Material> mm = new HashMap<String, Material>();
+        for (Material material : Material.values()) {
+            String name = material.name().toLowerCase().replaceAll("_", "");
+            mm.put(name, material);
+        }
+        materialMap = Collections.unmodifiableMap(mm);
+    }
 
     private ToHUtils() {
         throw new AssertionError("Don't instantiate me!");
@@ -98,6 +114,22 @@ public class ToHUtils {
 
         plugin.getServer().getPluginManager().registerEvent(eventType, listener, priority, plugin);
         return true;
+    }
+
+    /**
+     * Similar to {@link Material#matchMaterial(String)} but also accepts names
+     * without underscores or spaces, e.g. woodpickaxe.
+     * 
+     * @param name name of the material to match
+     * @return Material or null if not found
+     */
+    public static Material matchMaterial(String name) {
+        Material material = Material.matchMaterial(name);
+        if (material == null) {
+            // Use our map
+            material = materialMap.get(name.toLowerCase());
+        }
+        return material;
     }
 
 }
