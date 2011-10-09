@@ -35,6 +35,8 @@ import org.bukkit.plugin.Plugin;
  */
 public class ToHUtils {
 
+    public static final int TICKS_PER_SECOND = 20;
+
     private static final Map<String, Material> materialMap;
 
     static {
