@@ -44,6 +44,9 @@ public class ToHFileUtils {
     // Size of buffer for copyFile()
     private static final int COPY_BUFFER_SIZE = 4096;
 
+    // Configuration version property key
+    private static final String CONFIG_VERSION_KEY = "config-version";
+
     private ToHFileUtils() {
         throw new AssertionError("Don't instantiate me!");
     }
@@ -210,12 +213,39 @@ public class ToHFileUtils {
      * @param configName the config filename
      */
     public static void saveConfig(Plugin plugin, FileConfiguration config, File configDir, String configName) {
-        File configFile = new File(configDir, configName);
+        File newConfigFile = new File(configDir, configName + ".new");
+
+        // First try saving
         try {
-            config.save(configFile);
+            config.save(newConfigFile);
         }
         catch (IOException e) {
-            ToHLoggingUtils.error(plugin, "Error saving configuration %s", configFile, e);
+            ToHLoggingUtils.error(plugin, "Error saving configuration %s", newConfigFile, e);
+            return;
+        }
+        
+        File backupConfigFile = new File(configDir, configName + "~");
+
+        // Delete old backup (might be necessary on some platforms)
+        if (backupConfigFile.exists() && !backupConfigFile.delete()) {
+            ToHLoggingUtils.error(plugin, "Error deleting configuration %s", backupConfigFile);
+            // Continue despite failure
+        }
+        
+        File configFile = new File(configDir, configName);
+
+        // If only we had access to hardlinks, this could all be atomic.
+        
+        // Back up old config
+        if (configFile.exists() && !configFile.renameTo(backupConfigFile)) {
+            ToHLoggingUtils.error(plugin, "Error renaming %s to %s", configFile, backupConfigFile);
+            return; // no backup, abort
+        }
+
+        // Rename new file to config
+        if (!newConfigFile.renameTo(configFile)) {
+            ToHLoggingUtils.error(plugin, "Error renaming %s to %s", newConfigFile, configFile);
+            // Nothing else to do
         }
     }
 
@@ -227,6 +257,33 @@ public class ToHFileUtils {
      */
     public static void saveConfig(Plugin plugin, FileConfiguration config) {
         saveConfig(plugin, config, plugin.getDataFolder(), "config.yml");
+    }
+
+    /**
+     * Upgrade the standard configuration file, if necessary.
+     * 
+     * @param plugin the plugin
+     * @param config the FileConfiguration
+     * @param currentVersion the expected version, should be > 0
+     */
+    public static void upgradeConfig(Plugin plugin, FileConfiguration config, int currentVersion) {
+        int configVersion = config.getInt(CONFIG_VERSION_KEY, 0);
+        if (!config.isSet(CONFIG_VERSION_KEY) || configVersion < currentVersion) {
+            ToHLoggingUtils.log(plugin, "Upgrading config.yml");
+
+            // Update version
+            config.set(CONFIG_VERSION_KEY, currentVersion);
+
+            // Save old copyDefaults value & set to true
+            boolean copyDefaults = config.options().copyDefaults();
+            config.options().copyDefaults(true);
+
+            // Save config
+            saveConfig(plugin, config);
+
+            // Restore old copyDefaults
+            config.options().copyDefaults(copyDefaults);
+        }
     }
 
 }
