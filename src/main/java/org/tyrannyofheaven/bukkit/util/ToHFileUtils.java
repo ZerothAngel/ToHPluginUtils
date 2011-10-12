@@ -266,8 +266,12 @@ public class ToHFileUtils {
      * @param config the FileConfiguration
      * @param currentVersion the expected version, should be > 0
      */
-    public static void upgradeConfig(Plugin plugin, FileConfiguration config, int currentVersion) {
-        int configVersion = config.getInt(CONFIG_VERSION_KEY, 0);
+    public static void upgradeConfig(Plugin plugin, FileConfiguration config) {
+        Configuration defaults = config.getDefaults();
+        if (defaults == null)
+            throw new IllegalStateException("config does not have defaults");
+        int currentVersion = defaults.getInt(CONFIG_VERSION_KEY);
+        int configVersion = config.getInt(CONFIG_VERSION_KEY);
         if (!config.isSet(CONFIG_VERSION_KEY) || configVersion < currentVersion) {
             ToHLoggingUtils.log(plugin, "Upgrading config.yml");
 
