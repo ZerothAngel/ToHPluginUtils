@@ -38,6 +38,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.tyrannyofheaven.bukkit.util.ToHLoggingUtils;
 
 /**
  * The main class that drives annotation-driven command parsing.
@@ -499,7 +500,8 @@ final class HandlerExecutor<T extends Plugin> {
         for (String name : commandList) {
             PluginCommand command = ((JavaPlugin)plugin).getCommand(name);
             if (command == null) {
-                throw new CommandException("Unregistered command: %s", name);
+                ToHLoggingUtils.warn(plugin, "Command '%s' not found in plugin.yml -- ignoring", name);
+                continue;
             }
             command.setExecutor(executor);
         }
