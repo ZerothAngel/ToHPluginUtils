@@ -28,21 +28,29 @@ import java.util.jar.JarInputStream;
 public class VersionMain {
 
     public static void main(String[] args) throws IOException {
-        CodeSource codeSource = VersionMain.class.getProtectionDomain().getCodeSource();
+        VersionInfo versionInfo = getVersion(VersionMain.class);
+        if (versionInfo != null) {
+            System.out.println(versionInfo.getFullVersion());
+        }
+        else {
+            System.err.println("Unable to find my jar file!");
+            System.exit(1);
+        }
+    }
+
+    // Retrieve artifactId, version, build from manifest
+    static VersionInfo getVersion(Class<?> clazz) throws IOException {
+        CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
         URL url = codeSource.getLocation();
         if (url.toExternalForm().toLowerCase().endsWith(".jar")) { // Hmmm
             JarInputStream jis = new JarInputStream(url.openStream());
             String artifactId = jis.getManifest().getMainAttributes().getValue("Implementation-Title");
             String version = jis.getManifest().getMainAttributes().getValue("Implementation-Version");
             String build = jis.getManifest().getMainAttributes().getValue("Implementation-Build");
-            if (version.contains("SNAPSHOT"))
-                System.out.println(String.format("%s %s (build: %s)", artifactId, version, build));
-            else
-                System.out.println(String.format("%s %s", artifactId, version));
+            return new VersionInfo(artifactId, version, build);
         }
         else {
-            System.err.println("Unable to find my jar file!");
-            System.exit(1);
+            return null;
         }
     }
 
