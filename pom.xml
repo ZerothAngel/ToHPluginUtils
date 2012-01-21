@@ -8,7 +8,7 @@
   <name>ToHPluginUtils</name>
   <url>http://maven.apache.org</url>
   <scm>
-    <connection>scm:hg:</connection>
+    <connection>scm:git:</connection>
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
