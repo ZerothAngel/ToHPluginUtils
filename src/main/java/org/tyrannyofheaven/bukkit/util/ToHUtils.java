@@ -104,6 +104,7 @@ public class ToHUtils {
      * @param priority Priority of this listener
      * @param plugin owning Plugin
      * @return true if successfully registered
+     * @deprecated Bukkit event system currently in flux as of 1.1-R1-SNAPSHOT
      */
     public static boolean registerEvent(String type, Listener listener, Priority priority, Plugin plugin) {
         Type eventType;
