@@ -3,13 +3,13 @@ package org.tyrannyofheaven.bukkit.util.configuration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.file.YamlConstructor;
+import org.bukkit.configuration.file.YamlRepresenter;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.representer.Representer;
 
 import com.google.common.base.Joiner;
@@ -24,9 +24,9 @@ public class AnnotatedYamlConfiguration extends YamlConfiguration {
 
     private final DumperOptions yamlOptions = new DumperOptions();
 
-    private final Representer yamlRepresenter = new Representer();
+    private final Representer yamlRepresenter = new YamlRepresenter();
 
-    private final Yaml yaml = new Yaml(new SafeConstructor(), yamlRepresenter, yamlOptions);
+    private final Yaml yaml = new Yaml(new YamlConstructor(), yamlRepresenter, yamlOptions);
 
     // Map from property key to comment. Comment may have multiple lines that are newline-separated.
     private final Map<String, String> comments = new HashMap<String, String>();
@@ -38,16 +38,13 @@ public class AnnotatedYamlConfiguration extends YamlConfiguration {
         yamlOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         yamlRepresenter.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         
-        Map<String, Object> output = new LinkedHashMap<String, Object>();
-        serializeValues(output, getValues(false));
-
         StringBuilder builder = new StringBuilder();
         builder.append(buildHeader());
         if (builder.length() > 0)
             builder.append('\n'); // Newline after header, if present
 
         // Iterate over each root-level property and dump
-        for (Iterator<Map.Entry<String, Object>> i = output.entrySet().iterator(); i.hasNext();) {
+        for (Iterator<Map.Entry<String, Object>> i = getValues(false).entrySet().iterator(); i.hasNext();) {
             Map.Entry<String, Object> entry = i.next();
 
             // Output comment, if present
