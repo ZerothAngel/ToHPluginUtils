@@ -15,18 +15,12 @@
  */
 package org.tyrannyofheaven.bukkit.util;
 
-import static org.tyrannyofheaven.bukkit.util.ToHLoggingUtils.log;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 
 import org.bukkit.Material;
-import org.bukkit.event.Listener;
-import org.bukkit.event.Event.Priority;
-import org.bukkit.event.Event.Type;
 import org.bukkit.plugin.Plugin;
 
 /**
@@ -94,30 +88,6 @@ public class ToHUtils {
     public static void assertFalse(boolean test) {
         if (test)
             throw new AssertionError();
-    }
-
-    /**
-     * Registers an event by name to the given executor.
-     * 
-     * @param type name of the Event.Type enum
-     * @param listener Listener to register
-     * @param priority Priority of this listener
-     * @param plugin owning Plugin
-     * @return true if successfully registered
-     * @deprecated Bukkit event system currently in flux as of 1.1-R1-SNAPSHOT
-     */
-    public static boolean registerEvent(String type, Listener listener, Priority priority, Plugin plugin) {
-        Type eventType;
-        try {
-            eventType = Type.valueOf(type);
-        }
-        catch (IllegalArgumentException e) {
-            log(plugin, Level.SEVERE, "Unknown event type: %s", type, e);
-            return false;
-        }
-
-        plugin.getServer().getPluginManager().registerEvent(eventType, listener, priority, plugin);
-        return true;
     }
 
     /**
