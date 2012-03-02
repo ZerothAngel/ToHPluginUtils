@@ -104,6 +104,9 @@ public class CommandTest {
             public String getName() {
                 return null;
             }
+            @Override
+            public void sendMessage(String[] arg0) {
+            }
         };
         HandlerExecutor<MyPlugin> he = new HandlerExecutor<MyPlugin>(plugin, new MyHandler());
         
