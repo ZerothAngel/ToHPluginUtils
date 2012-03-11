@@ -44,10 +44,15 @@ public class VersionMain {
         URL url = codeSource.getLocation();
         if (url.toExternalForm().toLowerCase().endsWith(".jar")) { // Hmmm
             JarInputStream jis = new JarInputStream(url.openStream());
-            String artifactId = jis.getManifest().getMainAttributes().getValue("Implementation-Title");
-            String version = jis.getManifest().getMainAttributes().getValue("Implementation-Version");
-            String build = jis.getManifest().getMainAttributes().getValue("Implementation-Build");
-            return new VersionInfo(artifactId, version, build);
+            try {
+                String artifactId = jis.getManifest().getMainAttributes().getValue("Implementation-Title");
+                String version = jis.getManifest().getMainAttributes().getValue("Implementation-Version");
+                String build = jis.getManifest().getMainAttributes().getValue("Implementation-Build");
+                return new VersionInfo(artifactId, version, build);
+            }
+            finally {
+                jis.close();
+            }
         }
         else {
             return null;
