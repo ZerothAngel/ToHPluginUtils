@@ -81,7 +81,7 @@ This library is used in most of my Bukkit plugins:
 
 *   zPermissions
 *   Excursion
-*   BoatControl
+*   PowerTool
 *   A few other unpublished plugins
 
 ## To Do ##
@@ -99,3 +99,5 @@ This library is used in most of my Bukkit plugins:
     provide a method to get JDBC connections (that are already in a
     transaction). Not a fan of going down this road since that means I'd be
     writing SQL to specific databases (for anything moderately complex).
+
+*   Localization support of some type.
