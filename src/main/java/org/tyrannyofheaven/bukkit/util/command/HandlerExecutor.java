@@ -268,9 +268,9 @@ final class HandlerExecutor<T extends Plugin> {
     // Convert string to boolean (a little more friendlier than Boolean.valueOf(String))
     private boolean toBoolean(String text) {
         text = text.trim().toLowerCase();
-        if ("true".equals(text) || "t".equals(text) || "yes".equals(text) || "y".equals(text))
+        if ("true".equals(text) || "t".equals(text) || "yes".equals(text) || "y".equals(text) || "on".equals(text))
             return true;
-        else if ("false".equals(text) || "f".equals(text) || "no".equals(text) || "n".equals(text))
+        else if ("false".equals(text) || "f".equals(text) || "no".equals(text) || "n".equals(text) || "off".equals(text))
             return false;
         else
             throw new IllegalArgumentException("Cannot convert string to boolean");
