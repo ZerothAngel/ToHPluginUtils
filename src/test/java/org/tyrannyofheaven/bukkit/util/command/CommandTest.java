@@ -15,7 +15,11 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import junit.framework.Assert;
@@ -26,22 +30,26 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.StringUtil;
+import org.junit.Before;
 import org.junit.Test;
-import org.tyrannyofheaven.bukkit.util.command.HandlerExecutor;
-import org.tyrannyofheaven.bukkit.util.command.ParseException;
 import org.tyrannyofheaven.bukkit.util.permissions.PermissionException;
 
 public class CommandTest {
 
-    @Test
-    public void testHandlerExecutor() throws Throwable {
+    private final StringBuilder out = new StringBuilder();
+    
+    private final Set<String> permissions = new HashSet<String>();
+
+    private final CommandSender dummySender;
+
+    private final HandlerExecutor<MyPlugin> he;
+
+    public CommandTest() {
         // Some mock objects
         MyPlugin plugin = new MyPlugin();
 
-        final StringBuilder out = new StringBuilder();
-        final Set<String> permissions = new HashSet<String>();
-
-        CommandSender dummySender = new CommandSender() {
+        dummySender = new CommandSender() {
             @Override
             public Server getServer() {
                 return null;
@@ -108,8 +116,17 @@ public class CommandTest {
             public void sendMessage(String[] arg0) {
             }
         };
-        HandlerExecutor<MyPlugin> he = new HandlerExecutor<MyPlugin>(plugin, new MyHandler());
-        
+        he = new HandlerExecutor<MyPlugin>(plugin, new MyHandler());
+    }
+
+    @Before
+    public void setUp() {
+        out.delete(0, out.length());
+        permissions.clear();
+    }
+
+    @Test
+    public void testHandlerExecutor() throws Throwable {
         // No positional params, boolean flag
         he.execute(dummySender, "hello", "hello", new String[0]);
         Assert.assertEquals("Hello World!\n", out.toString()); out.delete(0, out.length());
@@ -175,6 +192,85 @@ public class CommandTest {
         permissions.add("foo.secret");
         he.execute(dummySender, "secret", "secret", new String[0]);
         Assert.assertEquals("Spike has a crush on Rarity\nyay!\n", out.toString()); out.delete(0, out.length());
+    }
+
+    @Test
+    public void testTabCompletion() throws Throwable {
+        TypeCompleter myTypeCompleter = new TypeCompleter() {
+            @Override
+            public List<String> complete(Class<?> clazz, String arg, CommandSender sender, String partial) {
+                if (clazz == String.class) {
+                    if (StringUtil.startsWithIgnoreCase("ZerothAngel", partial)) {
+                        return Collections.singletonList("ZerothAngel");
+                    }
+                }
+                return Collections.emptyList();
+            }
+        };
+
+        Map<String, TypeCompleter> typeCompleterRegistry = Collections.singletonMap("myCompleter", myTypeCompleter);
+
+        // No further args
+        testCompletions(he.getTabCompletions(dummySender, "hello", "hello", new String[] { "" }, null, null, typeCompleterRegistry));
+
+        // Flag
+        testCompletions(he.getTabCompletions(dummySender, "hello", "hello", new String[] { "-" }, null, null, typeCompleterRegistry),
+                "--", "-f");
+
+        // Custom TestCompleter, empty query
+        testCompletions(he.getTabCompletions(dummySender, "greet", "greet", new String[] { "" }, null, null, typeCompleterRegistry),
+                "ZerothAngel");
+
+        // Custom TestCompleter, query doesn't match
+        testCompletions(he.getTabCompletions(dummySender, "greet", "greet", new String[] { "a" }, null, null, typeCompleterRegistry));
+
+        // Custom TestCompleter, query match
+        testCompletions(he.getTabCompletions(dummySender, "greet", "greet", new String[] { "zero" }, null, null, typeCompleterRegistry),
+                "ZerothAngel");
+
+        // Flag
+        testCompletions(he.getTabCompletions(dummySender, "greet", "greet", new String[] { "-" }, null, null, typeCompleterRegistry),
+                "--", "-o");
+
+        // Flag value
+        testCompletions(he.getTabCompletions(dummySender, "greet", "greet", new String[] { "-o", "" }, null, null, typeCompleterRegistry),
+                "<value>");
+        
+        // Flag after positional
+        testCompletions(he.getTabCompletions(dummySender, "greet", "greet", new String[] { "ZerothAngel", "-" }, null, null, typeCompleterRegistry));
+
+        // Varargs
+        testCompletions(he.getTabCompletions(dummySender, "say", "say", new String[] { "" }, null, null, typeCompleterRegistry));
+        testCompletions(he.getTabCompletions(dummySender, "say", "say", new String[] { "blah", "" }, null, null, typeCompleterRegistry));
+        testCompletions(he.getTabCompletions(dummySender, "say", "say", new String[] { "blah", "foo" }, null, null, typeCompleterRegistry));
+
+        // Sub-command argument
+        testCompletions(he.getTabCompletions(dummySender, "bar", "bar", new String[] { "" }, null, null, typeCompleterRegistry),
+                "<name>");
+        
+        // Sub-command itself
+        testCompletions(he.getTabCompletions(dummySender, "bar", "bar", new String[] { "foo", "" }, null, null, typeCompleterRegistry),
+                "greet");
+        testCompletions(he.getTabCompletions(dummySender, "bar", "bar", new String[] { "foo", "gr" }, null, null, typeCompleterRegistry),
+                "greet");
+        testCompletions(he.getTabCompletions(dummySender, "bar", "bar", new String[] { "foo", "b" }, null, null, typeCompleterRegistry));
+        
+        // Sub-command
+        testCompletions(he.getTabCompletions(dummySender, "bar", "bar", new String[] { "foo", "greet", "" }, null, null, typeCompleterRegistry));
+
+        // Sub-command flag
+        testCompletions(he.getTabCompletions(dummySender, "bar", "bar", new String[] { "foo", "greet", "-" }, null, null, typeCompleterRegistry),
+                "--", "-o");
+        
+        // Sub-command flag value
+        testCompletions(he.getTabCompletions(dummySender, "bar", "bar", new String[] { "foo", "greet", "-o", "" }, null, null, typeCompleterRegistry),
+                "<option>");
+    }
+
+    private void testCompletions(List<String> actual, String... expected) throws Throwable {
+        Set<String> actualSet = new HashSet<String>(actual);
+        Set<String> expectedSet = new HashSet<String>(Arrays.asList(expected));
+        Assert.assertEquals(expectedSet, actualSet);
     }
 
 }

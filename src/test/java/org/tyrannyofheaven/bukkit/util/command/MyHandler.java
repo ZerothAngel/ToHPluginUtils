@@ -25,6 +25,8 @@ public class MyHandler {
 
     private final FooHandler fooHandler = new FooHandler();
 
+    private final BarHandler barHandler = new BarHandler();
+
     @Command({"hello", "greetings"})
     public void hello(CommandSender sender, @Option("-f") boolean flag) {
         sender.sendMessage("Hello World!");
@@ -33,7 +35,7 @@ public class MyHandler {
     }
 
     @Command("greet")
-    public void greet(CommandSender sender, @Option("name") String name, @Option("-o") String opt) {
+    public void greet(CommandSender sender, @Option(value="name", completer="myCompleter") String name, @Option("-o") String opt) {
         sender.sendMessage("Hello, " + name);
         if (opt != null)
             sender.sendMessage("With option = " + opt + "!");
@@ -63,6 +65,30 @@ public class MyHandler {
         @Command("hello")
         public void hello(CommandSender sender) {
             sender.sendMessage("Hello from the foo sub-command!");
+        }
+
+    }
+
+    @Command("bar")
+    public BarHandler bar(CommandSender sender, HelpBuilder helpBuilder, CommandSession session, @Option("name") String name, String[] args) {
+        if (args.length == 0) {
+            helpBuilder.withCommandSender(sender)
+                .withHandler(barHandler)
+                .forCommand("greet")
+                .show();
+            return null;
+        }
+        session.setValue("name", name);
+        return barHandler;
+    }
+
+    public static class BarHandler {
+
+        @Command("greet")
+        public void greet(CommandSender sender, @Session("name") String name, @Option(value="-o", valueName="option") String opt) {
+            sender.sendMessage("Hello, " + name);
+            if (opt != null)
+                sender.sendMessage("With option = " + opt + "!");
         }
 
     }
