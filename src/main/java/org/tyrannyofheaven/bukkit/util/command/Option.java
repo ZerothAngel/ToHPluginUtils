@@ -59,4 +59,10 @@ public @interface Option {
      */
     public boolean nullable() default false;
 
+    /**
+     * The name of the TypeCompleter to use. TypeCompleters should be registered
+     * via {@link ToHCommandExecutor#registerTypeCompleter(String, TypeCompleter)}.
+     */
+    public String completer() default "";
+
 }

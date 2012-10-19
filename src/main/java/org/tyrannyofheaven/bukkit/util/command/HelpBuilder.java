@@ -19,6 +19,7 @@ import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.bukkit.command.CommandSender;
 
@@ -43,7 +44,9 @@ public class HelpBuilder {
 
     private final List<String> outputLines = new ArrayList<String>();
 
-    HelpBuilder(HandlerExecutor<?> handlerExecutor, InvocationChain rootInvocationChain, UsageOptions usageOptions) {
+    private final Set<String> possibleCommands;
+
+    HelpBuilder(HandlerExecutor<?> handlerExecutor, InvocationChain rootInvocationChain, UsageOptions usageOptions, Set<String> possibleCommands) {
         if (handlerExecutor == null)
             throw new IllegalArgumentException("handlerExecutor cannot be null");
         if (rootInvocationChain == null)
@@ -54,6 +57,7 @@ public class HelpBuilder {
         this.handlerExecutor = handlerExecutor;
         this.rootInvocationChain = rootInvocationChain;
         this.usageOptions = usageOptions;
+        this.possibleCommands = possibleCommands;
     }
 
     /**
@@ -127,6 +131,8 @@ public class HelpBuilder {
         if (!hasText(command))
             throw new IllegalArgumentException("command must have a value");
         
+        if (possibleCommands != null) return this; // can't tab-complete siblings anyway
+
         // Remove last invocation (from a copy)
         InvocationChain invChain = rootInvocationChain.copy();
         invChain.pop();
@@ -169,7 +175,10 @@ public class HelpBuilder {
         InvocationChain invChain = rootInvocationChain.copy();
         he.fillInvocationChain(invChain, command);
         if (!usePermissions || invChain.canBeExecutedBy(getCommandSender())) {
-            outputLines.add(invChain.getUsageString(usageOptions, true));
+            if (possibleCommands != null)
+                possibleCommands.add(command);
+            else
+                outputLines.add(invChain.getUsageString(usageOptions, true));
         }
         return this;
     }
@@ -213,8 +222,10 @@ public class HelpBuilder {
      * Outputs all sub-command usage messages.
      */
     public void show() {
-        for (String line : outputLines) {
-            getCommandSender().sendMessage(line);
+        if (possibleCommands == null) {
+            for (String line : outputLines) {
+                getCommandSender().sendMessage(line);
+            }
         }
     }
 

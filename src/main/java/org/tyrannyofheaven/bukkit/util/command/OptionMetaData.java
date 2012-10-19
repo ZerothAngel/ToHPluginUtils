@@ -37,6 +37,8 @@ final class OptionMetaData implements MethodParameter {
     private final boolean optional;
     
     private final boolean nullable;
+    
+    private final String completer;
 
     /**
      * Create an OptionMetaData.
@@ -45,19 +47,22 @@ final class OptionMetaData implements MethodParameter {
      * @param type the parameter type
      * @param optional true if optional
      */
-    public OptionMetaData(String[] names, String valueName, Class<?> type, boolean optional, boolean nullable) {
+    public OptionMetaData(String[] names, String valueName, Class<?> type, boolean optional, boolean nullable, String completer) {
         if (names == null || names.length == 0)
             throw new IllegalArgumentException("names must be given");
         if (!hasText(valueName))
             valueName = DEFAULT_VALUE_NAME;
         if (type == null)
             throw new IllegalArgumentException("type cannot be null");
+        if (!hasText(completer))
+            completer = null;
 
         this.names = Arrays.copyOf(names, names.length);
         this.valueName = valueName;
         this.type = type;
         this.optional = optional;
         this.nullable = nullable;
+        this.completer = completer;
     }
 
     /**
@@ -131,6 +136,15 @@ final class OptionMetaData implements MethodParameter {
      */
     public static boolean isArgument(String name) {
         return !name.startsWith("-");
+    }
+
+    /**
+     * Returns the name of the associated completer, if any.
+     * 
+     * @return completer name, or null
+     */
+    public String getCompleter() {
+        return completer;
     }
 
 }

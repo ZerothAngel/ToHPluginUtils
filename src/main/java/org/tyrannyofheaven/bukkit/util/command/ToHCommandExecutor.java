@@ -16,15 +16,22 @@
 package org.tyrannyofheaven.bukkit.util.command;
 
 import static org.tyrannyofheaven.bukkit.util.ToHLoggingUtils.error;
-import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
+import static org.tyrannyofheaven.bukkit.util.ToHLoggingUtils.warn;
 import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.sendMessage;
+import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
 import static org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils.displayPermissionException;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.plugin.Plugin;
+import org.tyrannyofheaven.bukkit.util.ToHStringUtils;
 import org.tyrannyofheaven.bukkit.util.permissions.PermissionException;
 
 /**
@@ -32,13 +39,15 @@ import org.tyrannyofheaven.bukkit.util.permissions.PermissionException;
  * 
  * @author zerothangel
  */
-public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
+public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
 
     private final T plugin;
 
     private final HandlerExecutor<T> rootHandlerExecutor;
 
     private UsageOptions usageOptions = new DefaultUsageOptions();
+
+    private Map<String, TypeCompleter> typeCompleterRegistry = new HashMap<String, TypeCompleter>();
 
     /**
      * Create an instance.
@@ -53,6 +62,11 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
         this.plugin = plugin;
 
         rootHandlerExecutor = new HandlerExecutor<T>(plugin, usageOptions, handlers);
+        
+        // Register default TypeCompleters
+        registerTypeCompleter("constant", new ConstantTypeCompleter());
+        registerTypeCompleter("player", new PlayerTypeCompleter());
+        registerTypeCompleter("world", new WorldTypeCompleter());
     }
 
     /**
@@ -60,6 +74,16 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
      */
     public void registerCommands() {
         rootHandlerExecutor.registerCommands(this);
+    }
+
+    public ToHCommandExecutor<T> registerTypeCompleter(String name, TypeCompleter typeCompleter) {
+        if (!ToHStringUtils.hasText(name))
+            throw new IllegalArgumentException("name must have a value");
+        if (typeCompleter == null)
+            throw new IllegalArgumentException("typeCompleter cannot be null");
+        
+        typeCompleterRegistry.put(name, typeCompleter);
+        return this;
     }
 
     public void setUsageOptions(UsageOptions usageOptions) {
@@ -102,6 +126,20 @@ public class ToHCommandExecutor<T extends Plugin> implements CommandExecutor {
             sendMessage(sender, ChatColor.RED + "Plugin error; see server log.");
             error(plugin, "Command handler exception:", t);
             return true;
+        }
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        try {
+            return rootHandlerExecutor.getTabCompletions(sender, command.getName(), alias, args, null, null, typeCompleterRegistry);
+        }
+        catch (Error e) {
+            throw e;
+        }
+        catch (Throwable t) {
+            warn(plugin, "Tab completion exception:", t);
+            return Collections.emptyList();
         }
     }
 
