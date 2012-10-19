@@ -596,7 +596,7 @@ final class HandlerExecutor<T extends Plugin> {
         if (missingValue != null) {
             // Use missing value's type to get candidates
             List<String> result = new ArrayList<String>();
-            addCompletions(typeCompleterRegistry, missingValue, query, result);
+            addCompletions(typeCompleterRegistry, missingValue, sender, query, result);
             return result;
         }
 
@@ -639,7 +639,7 @@ final class HandlerExecutor<T extends Plugin> {
         return Collections.emptyList();
     }
 
-    private void addCompletions(Map<String, TypeCompleter> typeCompleterRegistry, OptionMetaData omd, String partial, List<String> destination) {
+    private void addCompletions(Map<String, TypeCompleter> typeCompleterRegistry, OptionMetaData omd, CommandSender sender, String partial, List<String> destination) {
         // Determine suitable TypeCompleter
         TypeCompleter typeCompleter = null;
         String arg = null;
@@ -657,7 +657,7 @@ final class HandlerExecutor<T extends Plugin> {
         }
         
         if (typeCompleter != null) {
-            destination.addAll(typeCompleter.complete(omd.getType(), arg, partial));
+            destination.addAll(typeCompleter.complete(omd.getType(), arg, sender, partial));
         }
         else {
             // Use values based on type.

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 
 /**
@@ -29,7 +30,7 @@ import org.bukkit.util.StringUtil;
 class ConstantTypeCompleter implements TypeCompleter {
 
     @Override
-    public List<String> complete(Class<?> clazz, String arg, String partial) {
+    public List<String> complete(Class<?> clazz, String arg, CommandSender sender, String partial) {
         if (arg != null) {
             List<String> result = new ArrayList<String>();
             String[] parts = arg.split("\\s+");

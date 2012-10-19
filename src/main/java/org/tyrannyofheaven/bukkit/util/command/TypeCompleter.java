@@ -17,6 +17,8 @@ package org.tyrannyofheaven.bukkit.util.command;
 
 import java.util.List;
 
+import org.bukkit.command.CommandSender;
+
 /**
  * Responsible for generating possible values for tab-completion.
  * 
@@ -29,9 +31,10 @@ public interface TypeCompleter {
      * 
      * @param clazz the parameter type
      * @param arg the argument. May be null.
+     * @param sender TODO
      * @param partial start of string to match for completion. May be empty, never null.
      * @return
      */
-    public List<String> complete(Class<?> clazz, String arg, String partial);
+    public List<String> complete(Class<?> clazz, String arg, CommandSender sender, String partial);
 
 }
