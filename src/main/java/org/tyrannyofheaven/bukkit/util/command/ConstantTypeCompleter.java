@@ -23,7 +23,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.util.StringUtil;
 
 /**
- * Simple TypeCompleter that simply returns the arguments (comma-separated).
+ * Simple TypeCompleter that simply returns the arguments (whitespace-separated).
  * 
  * @author zerothangel
  */

@@ -442,7 +442,8 @@ final class HandlerExecutor<T extends Plugin> {
         // Save into chain
         invChain.addInvocation(label, cmd);
 
-        ParsedArgs pa = ParsedArgs.parse(cmd, args);
+        ParsedArgs pa = new ParsedArgs();
+        pa.parse(cmd, args);
         Object[] methodArgs = buildMethodArgs(cmd, sender, pa, label, invChain, session, null);
         Object nextHandler = null;
         try {
@@ -546,17 +547,13 @@ final class HandlerExecutor<T extends Plugin> {
         invChain.addInvocation(label, cmd);
 
         // Tab completion on cmd.getFlagOptions() and cmd.getPositionalArguments()
+        ParsedArgs pa = new ParsedArgs();
         OptionMetaData missingValue;
-        boolean parsedPositional;
         boolean consumedAll;
-        Map<String, String> options;
-        ParsedArgs pa = null;
         try {
-            pa = ParsedArgs.parse(cmd, argsNoQuery);
-            missingValue = pa.getRemainingOptionalArgument(); // possible because of nullable
-            parsedPositional = pa.isParsedPositional();
+            pa.parse(cmd, argsNoQuery);
+            missingValue = pa.getUnparsedArgument(); // possible because of nullable
             consumedAll = pa.getRest().length == 0;
-            options = pa.getOptions();
         }
         catch (UnknownFlagException e) {
             // Tab-completion ain't gonna help
@@ -564,19 +561,17 @@ final class HandlerExecutor<T extends Plugin> {
         }
         catch (MissingValueException e) {
             missingValue = e.getOptionMetaData();
-            parsedPositional = e.isParsedPositional();
             consumedAll = true;
-            options = e.getOptions();
         }
 
         // Is it the start of a flag?
-        if (consumedAll && !parsedPositional && !OptionMetaData.isArgument(query)) {
+        if (consumedAll && !pa.isParsedPositional() && !OptionMetaData.isArgument(query)) {
             List<String> source = new ArrayList<String>();
             source.add("--"); // explicit end of flags
             for (OptionMetaData omd : cmd.getFlagOptions()) {
                 boolean found = false;
                 for (String flag : omd.getNames()) {
-                    if (options.containsKey(flag)) {
+                    if (pa.getOptions().containsKey(flag)) {
                         found = true;
                         break;
                     }
@@ -599,8 +594,6 @@ final class HandlerExecutor<T extends Plugin> {
             addCompletions(typeCompleterRegistry, missingValue, sender, query, result);
             return result;
         }
-
-        assert pa != null;
 
         // Check if sub-command
         if (cmd.getMethod().getReturnType() != Void.TYPE) {

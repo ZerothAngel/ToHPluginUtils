@@ -15,8 +15,6 @@
  */
 package org.tyrannyofheaven.bukkit.util.command;
 
-import java.util.Map;
-
 /**
  * Mainly used for tab completion support. Contains state of partial parse.
  * 
@@ -24,38 +22,22 @@ import java.util.Map;
  */
 public class MissingValueException extends ParseException {
 
-    private static final long serialVersionUID = -6084645961780603112L;
+    private static final long serialVersionUID = 9207028064109673003L;
 
     private final OptionMetaData optionMetaData;
 
-    private final boolean parsedPositional;
-
-    private final Map<String, String> options;
-
-    MissingValueException(OptionMetaData optionMetaData, boolean parsedPositional, Map<String, String> options) {
+    MissingValueException(OptionMetaData optionMetaData) {
         super("Missing argument: " + optionMetaData.getName());
         this.optionMetaData = optionMetaData;
-        this.parsedPositional = parsedPositional;
-        this.options = options;
     }
 
-    MissingValueException(OptionMetaData optionMetaData, String flag, boolean parsedPositional, Map<String, String> options) {
+    MissingValueException(OptionMetaData optionMetaData, String flag) {
         super("Missing value for flag: " + flag); // could use optionMetaData.getName(), but want passed-in name
         this.optionMetaData = optionMetaData;
-        this.parsedPositional = parsedPositional;
-        this.options = options;
     }
 
     public OptionMetaData getOptionMetaData() {
         return optionMetaData;
-    }
-
-    public boolean isParsedPositional() {
-        return parsedPositional;
-    }
-
-    public Map<String, String> getOptions() {
-        return options;
     }
 
 }
