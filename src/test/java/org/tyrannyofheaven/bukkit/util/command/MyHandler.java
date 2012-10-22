@@ -41,7 +41,7 @@ public class MyHandler {
             sender.sendMessage("With option = " + opt + "!");
     }
 
-    @Command("say")
+    @Command(value="say", completer="myCompleter")
     public void say(CommandSender sender, String[] args) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < args.length; i++) {

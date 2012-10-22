@@ -239,11 +239,6 @@ public class CommandTest {
         // Flag after positional
         testCompletions(he.getTabCompletions(dummySender, "greet", "greet", new String[] { "ZerothAngel", "-" }, null, null, typeCompleterRegistry));
 
-        // Varargs
-        testCompletions(he.getTabCompletions(dummySender, "say", "say", new String[] { "" }, null, null, typeCompleterRegistry));
-        testCompletions(he.getTabCompletions(dummySender, "say", "say", new String[] { "blah", "" }, null, null, typeCompleterRegistry));
-        testCompletions(he.getTabCompletions(dummySender, "say", "say", new String[] { "blah", "foo" }, null, null, typeCompleterRegistry));
-
         // Sub-command argument
         testCompletions(he.getTabCompletions(dummySender, "bar", "bar", new String[] { "" }, null, null, typeCompleterRegistry),
                 "<name>");
@@ -265,6 +260,13 @@ public class CommandTest {
         // Sub-command flag value
         testCompletions(he.getTabCompletions(dummySender, "bar", "bar", new String[] { "foo", "greet", "-o", "" }, null, null, typeCompleterRegistry),
                 "<option>");
+        
+        // Varargs
+        testCompletions(he.getTabCompletions(dummySender, "say", "say", new String[] { "" }, null, null, typeCompleterRegistry),
+                "ZerothAngel");
+        testCompletions(he.getTabCompletions(dummySender, "say", "say", new String[] { "a" }, null, null, typeCompleterRegistry));
+        testCompletions(he.getTabCompletions(dummySender, "say", "say", new String[] { "ZerothAngel", "" }, null, null, typeCompleterRegistry),
+                "ZerothAngel");
     }
 
     private void testCompletions(List<String> actual, String... expected) throws Throwable {

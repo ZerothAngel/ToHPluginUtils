@@ -251,7 +251,7 @@ final class HandlerExecutor<T extends Plugin> {
                         }
                     }
 
-                    CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll, command.description(), hasRest ? command.varargs() : null);
+                    CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll, command.description(), hasRest ? command.varargs() : null, hasRest ? command.completer() : null);
                     for (String commandName : command.value()) {
                         if (commandMap.put(commandName, cmd) != null) {
                             throw new CommandException("Duplicate command: %s (%s#%s)", commandName, handler.getClass().getName(), method.getName());
@@ -628,7 +628,31 @@ final class HandlerExecutor<T extends Plugin> {
             return result;
         }
 
-        // Some kind of error
+        // Have a varargs completer?
+        if (cmd.getCompleter() != null) {
+            List<String> result = new ArrayList<String>();
+
+            // Determine suitable TypeCompleter
+            TypeCompleter typeCompleter = null;
+            String arg = null;
+
+            String completerName = cmd.getCompleter();
+            // Split arguments, if present
+            String[] parts = completerName.split(":", 2);
+            if (parts.length == 2) {
+                completerName = parts[0];
+                arg = parts[1];
+            }
+            
+            typeCompleter = typeCompleterRegistry.get(completerName);
+            
+            if (typeCompleter != null) {
+                result.addAll(typeCompleter.complete(String.class, arg, sender, query));
+            }
+            return result;
+        }
+
+        // Nothing else
         return Collections.emptyList();
     }
 

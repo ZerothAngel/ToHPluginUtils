@@ -44,6 +44,8 @@ final class CommandMetaData {
 
     private final String rest;
 
+    private final String completer;
+
     private final List<OptionMetaData> flagOptions;
     
     private final List<OptionMetaData> positionalArguments;
@@ -57,7 +59,7 @@ final class CommandMetaData {
      * @param permissions required permissions, if any
      * @param requireAll true if all permissions are required
      */
-    public CommandMetaData(Object handler, Method method, List<MethodParameter> options, String[] permissions, boolean requireAll, String description, String rest) {
+    public CommandMetaData(Object handler, Method method, List<MethodParameter> options, String[] permissions, boolean requireAll, String description, String rest, String completer) {
         if (handler == null)
             throw new IllegalArgumentException("handler cannot be null");
         if (method == null)
@@ -71,6 +73,8 @@ final class CommandMetaData {
             description = null;
         if (!hasText(rest))
             rest = null;
+        if (!hasText(completer))
+            completer = null;
 
         this.handler = handler;
         this.method = method;
@@ -78,6 +82,7 @@ final class CommandMetaData {
         this.requireAll = requireAll;
         this.description = description;
         this.rest = rest;
+        this.completer = completer;
 
         this.parameters = Collections.unmodifiableList(new ArrayList<MethodParameter>(options));
         
@@ -179,6 +184,15 @@ final class CommandMetaData {
      */
     public String getRest() {
         return rest;
+    }
+
+    /**
+     * Returns the name of the registered TypeCompleter for each vararg word.
+     * 
+     * @return the TypeCompleter to use for varargs
+     */
+    public String getCompleter() {
+        return completer;
     }
 
 }

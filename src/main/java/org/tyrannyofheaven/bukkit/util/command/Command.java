@@ -55,4 +55,9 @@ public @interface Command {
      */
     public String varargs() default "";
 
+    /**
+     * TypeCompleter to use for varargs. Also see {@link ToHCommandExecutor#registerTypeCompleter(String, TypeCompleter)}.
+     */
+    public String completer() default "";
+
 }
