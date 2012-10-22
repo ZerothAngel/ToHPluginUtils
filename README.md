@@ -51,6 +51,10 @@ Other features:
 
 *   Automatic registration of top-level commands.
 
+*   Automatic support for tab-completion. Specific parameters, e.g. the
+    trackName String parameter above, can be given custom type completers to
+    return possible values.
+
 And some non-command-line-parsing features:
 
 *   Programmatic permission checking which will throw an exception if the
@@ -83,6 +87,10 @@ This library is used in most of my Bukkit plugins:
 *   Excursion
 *   PowerTool
 *   A few other unpublished plugins
+
+## Documentation ##
+
+The latest Javadocs may always be found [at my continuous integration site](http://ci.tyrannyofheaven.org/job/ToHPluginUtils/javadoc/).
 
 ## To Do ##
 
