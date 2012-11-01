@@ -1,9 +1,9 @@
 package org.tyrannyofheaven.bukkit.util.command.reader;
 
 import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.colorize;
+import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.sendMessage;
 import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.delimitedString;
 import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
-import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.sendMessage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,6 +28,9 @@ import org.bukkit.plugin.Plugin;
  * @author zerothangel
  */
 public class CommandReader {
+
+    // Used to hold the batch processing abort flag
+    private static final ThreadLocal<Boolean> abortFlags = new ThreadLocal<Boolean>();
 
     /**
      * Execute commands from a file. Commands will be echoed back to the sender.
@@ -140,31 +143,53 @@ public class CommandReader {
             in.close();
         }
         
-        // Execute each call
-        for (CommandCall call : calls) {
-            try {
-                if (echo) {
-                    sendMessage(sender, colorize("{GRAY}%s%s%s%s"),
-                            (sender instanceof Player ? "/" : ""),
-                            call.getAlias(),
-                            (call.getArgs().length > 0 ? " " : ""),
-                            delimitedString(" ", (Object[])call.getArgs()));
+        // Set up abort flag
+        abortFlags.set(Boolean.FALSE);
+
+        try {
+            // Execute each call
+            for (CommandCall call : calls) {
+                try {
+                    if (echo) {
+                        sendMessage(sender, colorize("{GRAY}%s%s%s%s"),
+                                (sender instanceof Player ? "/" : ""),
+                                call.getAlias(),
+                                (call.getArgs().length > 0 ? " " : ""),
+                                delimitedString(" ", (Object[])call.getArgs()));
+                    }
+                    if (!call.getCommand().execute(sender, call.getAlias(), call.getArgs()))
+                        return false;
+                    
+                    // Check aborting
+                    if (abortFlags.get() != null && abortFlags.get())
+                        return false;
                 }
-                if (!call.getCommand().execute(sender, call.getAlias(), call.getArgs()))
-                    return false;
+                catch (Error e) {
+                    throw e;
+                }
+                catch (RuntimeException e) {
+                    throw e;
+                }
+                catch (Throwable t) {
+                    throw new CommandReaderException(t);
+                }
             }
-            catch (Error e) {
-                throw e;
-            }
-            catch (RuntimeException e) {
-                throw e;
-            }
-            catch (Throwable t) {
-                throw new CommandReaderException(t);
-            }
+        }
+        finally {
+            // Remove ThreadLocal to prevent memory leaks
+            abortFlags.remove();
         }
 
         return true;
+    }
+
+    /**
+     * May be called by command handlers to abort batch processing. Does nothing
+     * if the handler was not called within {@link #read(Server, CommandSender, InputStream, boolean, Plugin...)}.
+     */
+    public static void abortBatchProcessing() {
+        if (abortFlags.get() != null)
+            abortFlags.set(Boolean.TRUE);
     }
 
     // Holder for command invocation
