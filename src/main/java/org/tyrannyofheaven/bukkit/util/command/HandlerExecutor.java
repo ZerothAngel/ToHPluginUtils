@@ -543,6 +543,14 @@ final class HandlerExecutor<T extends Plugin> {
         if (cmd == null)
             throw new ParseException("Unknown command: %s", name);
 
+        // Check permissions
+        if (cmd.isRequireAll()) {
+            requireAllPermissions(sender, cmd.getPermissions());
+        }
+        else {
+            requireOnePermission(sender, cmd.getPermissions());
+        }
+
         // Save into chain
         invChain.addInvocation(label, cmd);
 

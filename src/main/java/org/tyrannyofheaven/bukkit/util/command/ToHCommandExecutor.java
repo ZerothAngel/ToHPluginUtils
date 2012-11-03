@@ -134,6 +134,16 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
         try {
             return rootHandlerExecutor.getTabCompletions(sender, command.getName(), alias, args, null, null, typeCompleterRegistry);
         }
+        catch (PermissionException e) {
+            displayPermissionException(sender, e);
+            return Collections.emptyList();
+        }
+        catch (ParseException e) {
+            // Show message
+            if (hasText(e.getMessage()))
+                sendMessage(sender, "%s%s", ChatColor.RED, e.getMessage());
+            return Collections.emptyList();
+        }
         catch (Error e) {
             throw e;
         }
