@@ -125,7 +125,7 @@ final class InvocationChain {
     // Tests whether the given permissible can execute this entire chain
     boolean canBeExecutedBy(Permissible permissible) {
         for (CommandInvocation ci : chain) {
-            if (!hasPermissions(permissible, ci.getCommandMetaData().isRequireAll(), ci.getCommandMetaData().getPermissions()))
+            if (!hasPermissions(permissible, ci.getCommandMetaData().isRequireAll(), ci.getCommandMetaData().isCheckNegations(), ci.getCommandMetaData().getPermissions()))
                 return false;
         }
         return true;

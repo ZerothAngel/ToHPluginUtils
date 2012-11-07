@@ -27,11 +27,13 @@ import java.util.List;
  */
 public class PermissionException extends RuntimeException {
 
-    private static final long serialVersionUID = 7965054516381099359L;
+    private static final long serialVersionUID = 4064063141792654633L;
 
     private final List<String> permissions;
     
     private final boolean all;
+
+    private final boolean checkNegations;
 
     /**
      * Create a PermissionException for a single permission.
@@ -41,6 +43,7 @@ public class PermissionException extends RuntimeException {
     public PermissionException(String permission) {
         this.permissions = Collections.singletonList(permission);
         this.all = true;
+        this.checkNegations = false;
     }
 
     /**
@@ -49,9 +52,10 @@ public class PermissionException extends RuntimeException {
      * @param all true if all permissions are required
      * @param permissions name of permissions
      */
-    public PermissionException(boolean all, String... permissions) {
+    public PermissionException(boolean all, boolean checkNegations, String... permissions) {
         this.permissions = Collections.unmodifiableList(new ArrayList<String>(Arrays.asList(permissions)));
         this.all = all;
+        this.checkNegations = checkNegations;
     }
 
     /**
@@ -70,6 +74,15 @@ public class PermissionException extends RuntimeException {
      */
     public boolean isAll() {
         return all;
+    }
+
+    /**
+     * Retrieve whether or not negations were checked.
+     * 
+     * @return true if negations were checked
+     */
+    public boolean isCheckNegations() {
+        return checkNegations;
     }
 
 }

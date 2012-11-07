@@ -40,6 +40,8 @@ final class CommandMetaData {
 
     private final boolean requireAll;
 
+    private final boolean checkNegations;
+
     private final String description;
 
     private final String rest;
@@ -59,7 +61,7 @@ final class CommandMetaData {
      * @param permissions required permissions, if any
      * @param requireAll true if all permissions are required
      */
-    public CommandMetaData(Object handler, Method method, List<MethodParameter> options, String[] permissions, boolean requireAll, String description, String rest, String completer) {
+    public CommandMetaData(Object handler, Method method, List<MethodParameter> options, String[] permissions, boolean requireAll, boolean checkNegations, String description, String rest, String completer) {
         if (handler == null)
             throw new IllegalArgumentException("handler cannot be null");
         if (method == null)
@@ -80,6 +82,7 @@ final class CommandMetaData {
         this.method = method;
         this.permissions = Arrays.copyOf(permissions, permissions.length);
         this.requireAll = requireAll;
+        this.checkNegations = checkNegations;
         this.description = description;
         this.rest = rest;
         this.completer = completer;
@@ -166,6 +169,15 @@ final class CommandMetaData {
      */
     public boolean isRequireAll() {
         return requireAll;
+    }
+
+    /**
+     * Returns whether or not permission negations should be explicitly checked.
+     * 
+     * @return true if permissions negations should be explicitly checked
+     */
+    public boolean isCheckNegations() {
+        return checkNegations;
     }
 
     /**

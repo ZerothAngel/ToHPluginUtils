@@ -41,5 +41,10 @@ public @interface Require {
      * Whether all permissions are required.
      */
     public boolean all() default false;
-    
+
+    /**
+     * Whether negated permissions should be explicitly checked.
+     */
+    public boolean checkNegations() default false;
+
 }

@@ -126,9 +126,11 @@ final class HandlerExecutor<T extends Plugin> {
                 Require require = method.getAnnotation(Require.class);
                 String[] permissions = new String[0];
                 boolean requireAll = false;
+                boolean checkNegations = false;
                 if (require != null) {
                     permissions = require.value();
                     requireAll = require.all();
+                    checkNegations = require.checkNegations();
                 }
 
                 // @Command or @SubCommand present?
@@ -251,7 +253,7 @@ final class HandlerExecutor<T extends Plugin> {
                         }
                     }
 
-                    CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll, command.description(), hasRest ? command.varargs() : null, hasRest ? command.completer() : null);
+                    CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll, checkNegations, command.description(), hasRest ? command.varargs() : null, hasRest ? command.completer() : null);
                     for (String commandName : command.value()) {
                         if (commandMap.put(commandName, cmd) != null) {
                             throw new CommandException("Duplicate command: %s (%s#%s)", commandName, handler.getClass().getName(), method.getName());
@@ -436,7 +438,7 @@ final class HandlerExecutor<T extends Plugin> {
             requireAllPermissions(sender, cmd.getPermissions());
         }
         else {
-            requireOnePermission(sender, cmd.getPermissions());
+            requireOnePermission(sender, cmd.isCheckNegations(), cmd.getPermissions());
         }
 
         // Save into chain
@@ -548,7 +550,7 @@ final class HandlerExecutor<T extends Plugin> {
             requireAllPermissions(sender, cmd.getPermissions());
         }
         else {
-            requireOnePermission(sender, cmd.getPermissions());
+            requireOnePermission(sender, cmd.isCheckNegations(), cmd.getPermissions());
         }
 
         // Save into chain
