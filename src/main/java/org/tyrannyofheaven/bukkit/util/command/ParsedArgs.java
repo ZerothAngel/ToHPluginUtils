@@ -19,6 +19,7 @@ import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -85,24 +86,40 @@ final class ParsedArgs {
                 break;
             }
             else {
-                OptionMetaData omd = getOption(arg, cmd.getFlagOptions());
-                if (omd == null) {
-                    // Unknown option
-                    throw new UnknownFlagException(arg);
-                }
-                // Special handling of Boolean and boolean
-                if (omd.getType() == Boolean.class || omd.getType() == Boolean.TYPE) {
-                    options.put(omd.getName(), ""); // value doesn't matter, only existence
+                List<String> flags = new LinkedList<String>();
+
+                String flagArg = arg.substring(1);
+                if (!flagArg.startsWith("-")) {
+                    // Not a long flag, break it up
+                    for (char c : flagArg.toCharArray()) {
+                        flags.add("-" + Character.toString(c));
+                    }
                 }
                 else {
-                    // Get value
-                    pos++;
-                    if (pos >= args.length) {
-                        // Premature end
-                        throw new MissingValueException(omd, arg);
+                    // Use long flag as-is
+                    flags.add(arg);
+                }
+
+                for (String flag : flags) {
+                    OptionMetaData omd = getOption(flag, cmd.getFlagOptions());
+                    if (omd == null) {
+                        // Unknown option
+                        throw new UnknownFlagException(flag);
                     }
-                    
-                    options.put(omd.getName(), args[pos]);
+                    // Special handling of Boolean and boolean
+                    if (omd.getType() == Boolean.class || omd.getType() == Boolean.TYPE) {
+                        options.put(omd.getName(), ""); // value doesn't matter, only existence
+                    }
+                    else {
+                        // Get value
+                        pos++;
+                        if (pos >= args.length) {
+                            // Premature end
+                            throw new MissingValueException(omd, flag);
+                        }
+
+                        options.put(omd.getName(), args[pos]);
+                    }
                 }
                 pos++;
             }

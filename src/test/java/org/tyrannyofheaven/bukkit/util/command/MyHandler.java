@@ -101,4 +101,11 @@ public class MyHandler {
         plugin.test(sender);
     }
 
+    @Command("garply")
+    public void garply(CommandSender sender, @Option({"-f", "--flag"}) boolean flag, @Option({"-o", "--option"}) String option, @Option("-t") String test) {
+        sender.sendMessage((flag ? "have" : "no") + " flag with option = " + option);
+        if (test != null)
+            sender.sendMessage(test);
+    }
+
 }

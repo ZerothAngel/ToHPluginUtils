@@ -192,6 +192,93 @@ public class CommandTest {
         permissions.add("foo.secret");
         he.execute(dummySender, "secret", "secret", new String[0]);
         Assert.assertEquals("Spike has a crush on Rarity\nyay!\n", out.toString()); out.delete(0, out.length());
+
+        // Long/short flags
+        he.execute(dummySender, "garply", "garply", new String[0]); // nothing
+        Assert.assertEquals("no flag with option = null\n", out.toString()); out.delete(0, out.length());
+
+        he.execute(dummySender, "garply", "garply", new String[] { "-f" });
+        Assert.assertEquals("have flag with option = null\n", out.toString()); out.delete(0, out.length());
+
+        he.execute(dummySender, "garply", "garply", new String[] { "--flag" });
+        Assert.assertEquals("have flag with option = null\n", out.toString()); out.delete(0, out.length());
+
+        good = false;
+        try {
+            he.execute(dummySender, "garply", "garply", new String[] { "-o" });
+        }
+        catch (MissingValueException e) {
+            good = e.getOptionMetaData().getName().equals("-o");
+        }
+        Assert.assertTrue(good);
+
+        good = false;
+        try {
+            he.execute(dummySender, "garply", "garply", new String[] { "--option" });
+        }
+        catch (MissingValueException e) {
+            good = e.getOptionMetaData().getName().equals("-o");
+        }
+        Assert.assertTrue(good);
+
+        he.execute(dummySender, "garply", "garply", new String[] { "-o", "blah" });
+        Assert.assertEquals("no flag with option = blah\n", out.toString()); out.delete(0, out.length());
+
+        he.execute(dummySender, "garply", "garply", new String[] { "--option", "blah" });
+        Assert.assertEquals("no flag with option = blah\n", out.toString()); out.delete(0, out.length());
+        
+        // Multi-flags
+        he.execute(dummySender, "garply", "garply", new String[] { "-f", "-o", "blah" });
+        Assert.assertEquals("have flag with option = blah\n", out.toString()); out.delete(0, out.length());
+
+        he.execute(dummySender, "garply", "garply", new String[] { "-o", "blah", "-f"});
+        Assert.assertEquals("have flag with option = blah\n", out.toString()); out.delete(0, out.length());
+
+        good = false;
+        try {
+            he.execute(dummySender, "garply", "garply", new String[] { "-fo" });
+        }
+        catch (MissingValueException e) {
+            good = e.getOptionMetaData().getName().equals("-o");
+        }
+        Assert.assertTrue(good);
+
+        good = false;
+        try {
+            he.execute(dummySender, "garply", "garply", new String[] { "-of" });
+        }
+        catch (MissingValueException e) {
+            good = e.getOptionMetaData().getName().equals("-o");
+        }
+        Assert.assertTrue(good);
+
+        he.execute(dummySender, "garply", "garply", new String[] { "-fo", "blah" });
+        Assert.assertEquals("have flag with option = blah\n", out.toString()); out.delete(0, out.length());
+
+        he.execute(dummySender, "garply", "garply", new String[] { "-of", "blah" });
+        Assert.assertEquals("have flag with option = blah\n", out.toString()); out.delete(0, out.length());
+        
+        // Dual multi-args
+        he.execute(dummySender, "garply", "garply", new String[] { "-fo", "blah", "-t", "garply" });
+        Assert.assertEquals("have flag with option = blah\ngarply\n", out.toString()); out.delete(0, out.length());
+
+        he.execute(dummySender, "garply", "garply", new String[] { "-o", "blah", "-tf", "garply" });
+        Assert.assertEquals("have flag with option = blah\ngarply\n", out.toString()); out.delete(0, out.length());
+
+        good = false;
+        try {
+            he.execute(dummySender, "garply", "garply", new String[] { "-oft", "blah" });
+        }
+        catch (MissingValueException e) {
+            good = e.getOptionMetaData().getName().equals("-t");
+        }
+        Assert.assertTrue(good);
+
+        he.execute(dummySender, "garply", "garply", new String[] { "-oft", "blah", "garply" });
+        Assert.assertEquals("have flag with option = blah\ngarply\n", out.toString()); out.delete(0, out.length());
+
+        he.execute(dummySender, "garply", "garply", new String[] { "-tfo", "blah", "garply" });
+        Assert.assertEquals("have flag with option = garply\nblah\n", out.toString()); out.delete(0, out.length());
     }
 
     @Test
