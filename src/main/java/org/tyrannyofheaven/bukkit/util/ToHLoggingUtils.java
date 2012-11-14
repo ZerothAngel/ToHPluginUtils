@@ -33,16 +33,11 @@ public class ToHLoggingUtils {
     }
 
     // Create a log message
-    private static String createLogMessage(Plugin plugin, String format, Object... args) {
+    private static String createLogMessage(String format, Object... args) {
         if (format == null)
             return null;
         else
-            return String.format("[%s] %s", plugin.getDescription().getName(), String.format(format, args));
-    }
-
-    // Retrieve logger associated with a plugin
-    private static Logger getLogger(Plugin plugin) {
-        return Logger.getLogger(plugin.getClass().getName());
+            return String.format(format, args);
     }
 
     /**
@@ -56,14 +51,14 @@ public class ToHLoggingUtils {
      *   It will not be available for the format.
      */
     public static void log(Plugin plugin, Level level, String format, Object... args) {
-        Logger logger = getLogger(plugin);
+        Logger logger = plugin.getLogger();
         if (logger.isLoggable(level)) { // Avoid unnecessary String.format() calls
             if (args.length > 0 && args[args.length - 1] instanceof Throwable) {
                 // Last argument is a Throwable, treat accordingly
-                logger.log(level, createLogMessage(plugin, format, Arrays.copyOf(args, args.length - 1)), (Throwable)args[args.length - 1]);
+                logger.log(level, createLogMessage(format, Arrays.copyOf(args, args.length - 1)), (Throwable)args[args.length - 1]);
             }
             else {
-                logger.log(level, createLogMessage(plugin, format, args));
+                logger.log(level, createLogMessage(format, args));
             }
         }
     }
