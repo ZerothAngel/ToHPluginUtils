@@ -15,13 +15,20 @@
  */
 package org.tyrannyofheaven.bukkit.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
+import org.bukkit.conversations.Conversable;
+import org.bukkit.conversations.Conversation;
+import org.bukkit.conversations.ConversationFactory;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.ChatPaginator;
 
 /**
  * Convenience methods mainly for displaying info via {@link CommandSender#sendMessage(String)}.
@@ -29,6 +36,9 @@ import org.bukkit.plugin.Plugin;
  * @author zerothangel
  */
 public class ToHMessageUtils {
+
+    // Number of lines per page
+    private static final int LINES_PER_PAGE = ChatPaginator.CLOSED_CHAT_PAGE_HEIGHT;
 
     // Cache for colorize(). Feeling kinda iffy, but Strings are immutable...
     private static final ConcurrentMap<String, String> colorizeCache = new ConcurrentHashMap<String, String>();
@@ -247,6 +257,47 @@ public class ToHMessageUtils {
      */
     public static int broadcastAdmin(Plugin plugin, String format, Object... args) {
         return broadcast(plugin, Server.BROADCAST_CHANNEL_ADMINISTRATIVE, format, args);
+    }
+
+    /**
+     * Display a bunch of lines, automatically paginating if necessary. Only bothers
+     * paginating if sender is a Player and the number of lines is greater than
+     * the size of a page.
+     * 
+     * @param plugin the plugin
+     * @param sender the CommandSender to display the lines to
+     * @param lines the lines to display
+     */
+    public static void displayLines(Plugin plugin, CommandSender sender, List<String> lines) {
+        if (lines.isEmpty()) return;
+
+        if (sender instanceof Player) {
+            // Word wrap long lines
+            List<String> outputLines = new ArrayList<String>(lines.size());
+            for (String line : lines) {
+                String[] wrapped = ChatPaginator.wordWrap(line, ChatPaginator.GUARANTEED_NO_WRAP_CHAT_PAGE_WIDTH);
+                for (String wrap : wrapped)
+                    outputLines.add(wrap);
+            }
+            lines = outputLines;
+
+            if (lines.size() > LINES_PER_PAGE) {
+                Conversation convo = new ConversationFactory(plugin)
+                .withFirstPrompt(new PagerPrompt(lines, LINES_PER_PAGE))
+                .withLocalEcho(false)
+                .buildConversation((Conversable)sender);
+
+                convo.begin();
+                return;
+            }
+            
+            // Fall through...
+        }
+
+        // Don't bother with pager
+        for (String line : lines) {
+            sender.sendMessage(line);
+        }
     }
 
 }
