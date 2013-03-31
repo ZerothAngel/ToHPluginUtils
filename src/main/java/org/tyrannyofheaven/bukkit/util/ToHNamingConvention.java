@@ -36,17 +36,20 @@ public class ToHNamingConvention extends UnderscoreNamingConvention {
 
     private final Map<String, String> tableNames = new HashMap<String, String>();
 
+    private final String defaultSchemaTableName;
+
     /**
      * Construct a new instance and configure it so it only accepts table name
      * mappings of the classes specified by {@link JavaPlugin#getDatabaseClasses()}.
      * 
      * @param plugin the JavaPlugin subclass
      */
-    public ToHNamingConvention(JavaPlugin plugin) {
+    public ToHNamingConvention(JavaPlugin plugin, String defaultSchemaTableName) {
         // Set up null placeholders
         for (Class<?> clazz : plugin.getDatabaseClasses()) {
             tableNames.put(clazz.getSimpleName(), null);
         }
+        this.defaultSchemaTableName = defaultSchemaTableName;
     }
     
     /**
@@ -80,6 +83,11 @@ public class ToHNamingConvention extends UnderscoreNamingConvention {
         String qualifiedTableName = tableNames.get(beanClass.getSimpleName());
         if (qualifiedTableName != null) {
             return new TableName(qualifiedTableName);
+        }
+        else if (beanClass == ToHSchemaVersion.class) {
+            // Special handling of default name for schema version table
+            TableName tableName = super.getTableName(beanClass);
+            return new TableName(tableName.getCatalog(), tableName.getSchema(), defaultSchemaTableName);
         }
         return super.getTableName(beanClass);
     }

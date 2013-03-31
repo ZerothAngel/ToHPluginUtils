@@ -21,16 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.Material;
-import org.bukkit.configuration.Configuration;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import com.avaje.ebean.EbeanServer;
-import com.avaje.ebean.EbeanServerFactory;
-import com.avaje.ebean.config.DataSourceConfig;
-import com.avaje.ebean.config.NamingConvention;
-import com.avaje.ebean.config.ServerConfig;
 
 /**
  * Miscellaneous utility methods.
@@ -135,66 +126,6 @@ public class ToHUtils {
             versionInfo = new VersionInfo(plugin.getDescription().getName(), plugin.getDescription().getVersion(), "UNKNOWN");
         }
         return versionInfo;
-    }
-
-    /**
-     * Create an EbeanServer instance for a plugin, installing an optional
-     * {@link NamingConvention} implementation.
-     * 
-     * @param plugin the JavaPlugin subclass
-     * @param classLoader the plugin's class loader
-     * @param namingConvention NamingConvention instance or null
-     * @return new EbeanServer instance
-     */
-    // R.I.P. BUKKIT-3919
-    public static EbeanServer createEbeanServer(JavaPlugin plugin, ClassLoader classLoader, NamingConvention namingConvention) {
-        ServerConfig db = new ServerConfig();
-
-        // All this duplication just for this one line...
-        if (namingConvention != null)
-            db.setNamingConvention(namingConvention);
-
-        db.setDefaultServer(false);
-        db.setRegister(false);
-        db.setClasses(plugin.getDatabaseClasses());
-        db.setName(plugin.getDescription().getName());
-        plugin.getServer().configureDbConfig(db);
-
-        DataSourceConfig ds = db.getDataSourceConfig();
-
-        ds.setUrl(replaceDatabaseString(plugin, ds.getUrl()));
-        plugin.getDataFolder().mkdirs();
-
-        ClassLoader previous = Thread.currentThread().getContextClassLoader();
-
-        Thread.currentThread().setContextClassLoader(classLoader);
-        EbeanServer ebeanServer = EbeanServerFactory.create(db);
-        Thread.currentThread().setContextClassLoader(previous);
-        
-        return ebeanServer;
-    }
-
-    // Copied from JavaPlugin
-    private static String replaceDatabaseString(Plugin plugin, String input) {
-        input = input.replaceAll("\\{DIR\\}", plugin.getDataFolder().getPath().replaceAll("\\\\", "/") + "/");
-        input = input.replaceAll("\\{NAME\\}", plugin.getDescription().getName().replaceAll("[^\\w_-]", ""));
-        return input;
-    }
-
-    /**
-     * Given a Configuration, populate a {@link ToHNamingConvention}.
-     * 
-     * @param config the Configuration
-     * @param namingConvention a ToHNamingConvention instance
-     */
-    public static void populateNamingConvention(Configuration config, ToHNamingConvention namingConvention) {
-        namingConvention.clearTableNames();
-        ConfigurationSection node = config.getConfigurationSection("tables");
-        if (node != null) {
-            for (Map.Entry<String, ?> me : node.getValues(false).entrySet()) {
-                namingConvention.setTableName(me.getKey(), me.getValue().toString());
-            }
-        }
     }
 
 }
