@@ -21,6 +21,8 @@ import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.sendMessage;
 import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
 import static org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils.displayPermissionException;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +50,8 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
     private UsageOptions usageOptions = new DefaultUsageOptions();
 
     private Map<String, TypeCompleter> typeCompleterRegistry = new HashMap<String, TypeCompleter>();
+
+    private boolean quoteAware = false;
 
     /**
      * Create an instance.
@@ -86,11 +90,17 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
         return this;
     }
 
-    public void setUsageOptions(UsageOptions usageOptions) {
+    public ToHCommandExecutor<T> setUsageOptions(UsageOptions usageOptions) {
         if (usageOptions == null)
             throw new IllegalArgumentException("usageOptions cannot be null");
         
         this.usageOptions = usageOptions;
+        return this;
+    }
+
+    public ToHCommandExecutor<T> setQuoteAware(boolean quoteAware) {
+        this.quoteAware = quoteAware;
+        return this;
     }
 
     /* (non-Javadoc)
@@ -99,6 +109,9 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         InvocationChain invChain = new InvocationChain();
+
+        if (quoteAware)
+            args = split(ToHStringUtils.delimitedString(" ", (Object[])args));
 
         try {
             // NB: We use command.getName() rather than label. This allows the
@@ -131,6 +144,26 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (quoteAware) {
+            // Isolate query argument (last argument)
+            String query;
+            String[] argsNoQuery;
+            if (args.length > 0) {
+                // Have at least one
+                query = args[args.length - 1];
+                argsNoQuery = Arrays.copyOfRange(args, 0, args.length - 1);
+            }
+            else {
+                query = "";
+                argsNoQuery = args;
+            }
+
+            args = split(ToHStringUtils.delimitedString(" ", (Object[])argsNoQuery));
+            // Extend and add query
+            args = Arrays.copyOfRange(args, 0, args.length + 1);
+            args[args.length - 1] = query;
+        }
+
         try {
             return rootHandlerExecutor.getTabCompletions(sender, command.getName(), alias, args, null, null, typeCompleterRegistry);
         }
@@ -151,6 +184,85 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
             warn(plugin, "Tab completion exception:", t);
             return Collections.emptyList();
         }
+    }
+
+    private String[] split(String input) {
+        List<String> result = new ArrayList<String>();
+
+        SplitState state = SplitState.NORMAL;
+        StringBuilder current = new StringBuilder();
+
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+
+            switch (state) {
+            case NORMAL:
+                if (c == '\\') {
+                    // Start of escape sequence
+                    state = SplitState.ESCAPED;
+                }
+                else if (c == '"') {
+                    // Open quotes
+                    state = SplitState.QUOTED;
+                }
+                else {
+                    if (current.length() == 0) {
+                        // Current token empty, skip leading white spaces
+                        if (!Character.isWhitespace(c))
+                            current.append(c);
+                    }
+                    else if (Character.isWhitespace(c)) {
+                        // End of token
+                        result.add(current.toString());
+                        current = new StringBuilder();
+                    }
+                    else {
+                        current.append(c);
+                    }
+                }
+                break;
+            case ESCAPED:
+            case QUOTED_ESCAPED:
+                if (c == '\\') {
+                    current.append('\\');
+                }
+                else if (c == '"') {
+                    current.append('"');
+                }
+                else {
+                    // Not a valid escape
+                    current.append('\\');
+                    current.append(c);
+                }
+                state = state == SplitState.ESCAPED ? SplitState.NORMAL : SplitState.QUOTED;
+                break;
+            case QUOTED:
+                if (c == '\\') {
+                    state = SplitState.QUOTED_ESCAPED;
+                }
+                else if (c == '"') {
+                    // Close quotes
+                    state = SplitState.NORMAL;
+                }
+                else {
+                    // Append unconditionally
+                    current.append(c);
+                }
+                break;
+            default:
+                throw new AssertionError("Unhandled SplitState." + state);
+            }
+        }
+
+        // Check final token
+        if (current.length() > 0)
+            result.add(current.toString());
+
+        return result.toArray(new String[result.size()]);
+    }
+
+    private static enum SplitState {
+        NORMAL, ESCAPED, QUOTED, QUOTED_ESCAPED;
     }
 
 }

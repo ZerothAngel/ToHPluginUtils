@@ -128,4 +128,16 @@ public class ToHUtilsTest {
         fail();
     }
 
+    @Test
+    public void testQuoteArg() {
+        assertEquals("foo", ToHStringUtils.quoteArgForCommand("foo"));
+        assertEquals("\"foo bar\"", ToHStringUtils.quoteArgForCommand("foo bar"));
+        assertEquals("\"  foo  bar\"", ToHStringUtils.quoteArgForCommand("  foo  bar"));
+        assertEquals("\"foo bar   \"", ToHStringUtils.quoteArgForCommand("foo bar   "));
+        assertEquals("foo\\\\bar", ToHStringUtils.quoteArgForCommand("foo\\bar"));
+        assertEquals("foo\\\"bar", ToHStringUtils.quoteArgForCommand("foo\"bar"));
+        assertEquals("foo\\\"bar\\\\garply", ToHStringUtils.quoteArgForCommand("foo\"bar\\garply"));
+        assertEquals("\"foo\\\"bar\\\\garply baz\"", ToHStringUtils.quoteArgForCommand("foo\"bar\\garply baz"));
+    }
+
 }

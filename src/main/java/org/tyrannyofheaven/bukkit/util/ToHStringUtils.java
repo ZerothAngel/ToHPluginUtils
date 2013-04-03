@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.tyrannyofheaven.bukkit.util.command.ToHCommandExecutor;
+
 /**
  * Utility methods I miss from Spring StringUtils and/or Commons-Lang.
  * 
@@ -68,6 +70,20 @@ public class ToHStringUtils {
      */
     public static String delimitedString(String delimiter, Object... objs) {
         return delimitedString(delimiter, Arrays.asList(objs));
+    }
+
+    /**
+     * Quote a string suitable for the "quote aware" parser of {@link ToHCommandExecutor}.
+     * 
+     * @param input the input string
+     * @return the possibly escaped and quoted string
+     */
+    public static String quoteArgForCommand(String input) {
+        input = input.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"");
+        if (input.matches(".*\\s.*"))
+            return "\"" + input + "\""; // Enclose in quotes
+        else
+            return input;
     }
 
 }
