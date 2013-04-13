@@ -35,7 +35,7 @@ public class MyHandler {
     }
 
     @Command("greet")
-    public void greet(CommandSender sender, @Option(value="name", completer="myCompleter") String name, @Option("-o") String opt) {
+    public void greet(CommandSender sender, @Option(value="name", completer="myCompleter") String name, @Option("-o") String opt, String[] args) {
         sender.sendMessage("Hello, " + name);
         if (opt != null)
             sender.sendMessage("With option = " + opt + "!");

@@ -139,9 +139,14 @@ public class CommandTest {
 
         he.execute(dummySender, "hello", "greetings", new String[] { "-f" });
         Assert.assertEquals("Hello World!\nWith flag!\n", out.toString()); out.delete(0, out.length());
-        
-        // Required positional param, flag with value
+
+        // Extra positional
         boolean good = false;
+        try { he.execute(dummySender, "hello", "hello", new String[] { "extra" }); } catch (ParseException e) { good = true; }
+        Assert.assertTrue(good);
+
+        // Required positional param, flag with value
+        good = false;
         try { he.execute(dummySender, "greet", "greet", new String[0]); } catch (ParseException e) { good = true; }
         Assert.assertTrue(good);
 
@@ -179,6 +184,10 @@ public class CommandTest {
         he.execute(dummySender, "foo", "foo", new String[] { "hello" });
         Assert.assertEquals("Hello from the foo sub-command!\n", out.toString()); out.delete(0, out.length());
         
+        good = false;
+        try { he.execute(dummySender, "foo", "foo", new String[] { "hello", "extra" }); } catch (ParseException e) { good = true; }
+        Assert.assertTrue(good);
+
         good = false;
         permissions.clear();
         try {

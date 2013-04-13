@@ -44,6 +44,8 @@ final class CommandMetaData {
 
     private final String description;
 
+    private final boolean hasRest;
+
     private final String rest;
 
     private final String completer;
@@ -61,7 +63,7 @@ final class CommandMetaData {
      * @param permissions required permissions, if any
      * @param requireAll true if all permissions are required
      */
-    public CommandMetaData(Object handler, Method method, List<MethodParameter> options, String[] permissions, boolean requireAll, boolean checkNegations, String description, String rest, String completer) {
+    public CommandMetaData(Object handler, Method method, List<MethodParameter> options, String[] permissions, boolean requireAll, boolean checkNegations, String description, boolean hasRest, String rest, String completer) {
         if (handler == null)
             throw new IllegalArgumentException("handler cannot be null");
         if (method == null)
@@ -84,6 +86,7 @@ final class CommandMetaData {
         this.requireAll = requireAll;
         this.checkNegations = checkNegations;
         this.description = description;
+        this.hasRest = hasRest;
         this.rest = rest;
         this.completer = completer;
 
@@ -187,6 +190,15 @@ final class CommandMetaData {
      */
     public String getDescription() {
         return description;
+    }
+
+    /**
+     * Returns whether or not this command has a varargs parameter.
+     * 
+     * @return true if a varargs parameter is present
+     */
+    public boolean hasRest() {
+        return hasRest;
     }
 
     /**

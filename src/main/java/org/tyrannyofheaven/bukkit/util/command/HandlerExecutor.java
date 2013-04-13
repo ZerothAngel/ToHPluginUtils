@@ -253,7 +253,7 @@ final class HandlerExecutor<T extends Plugin> {
                         }
                     }
 
-                    CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll, checkNegations, command.description(), hasRest ? command.varargs() : null, hasRest ? command.completer() : null);
+                    CommandMetaData cmd = new CommandMetaData(handler, method, options, permissions, requireAll, checkNegations, command.description(), hasRest, hasRest ? command.varargs() : null, hasRest ? command.completer() : null);
                     for (String commandName : command.value()) {
                         if (commandMap.put(commandName, cmd) != null) {
                             throw new CommandException("Duplicate command: %s (%s#%s)", commandName, handler.getClass().getName(), method.getName());
@@ -446,6 +446,8 @@ final class HandlerExecutor<T extends Plugin> {
 
         ParsedArgs pa = new ParsedArgs();
         pa.parse(cmd, args);
+        if (!cmd.hasRest() && pa.getRest().length > 0)
+            throw new ParseException("Too many arguments");
         Object[] methodArgs = buildMethodArgs(cmd, sender, pa, label, invChain, session, null);
         Object nextHandler = null;
         try {
