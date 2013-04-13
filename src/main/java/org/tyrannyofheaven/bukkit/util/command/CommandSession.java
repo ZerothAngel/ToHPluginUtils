@@ -51,9 +51,7 @@ public final class CommandSession {
         Object obj = data.get(name);
         if (obj != null) {
             if (clazz.isAssignableFrom(obj.getClass())) {
-                @SuppressWarnings("unchecked")
-                T o = (T)obj;
-                return o;
+                return clazz.cast(obj);
             }
             else {
                 throw new IllegalArgumentException(String.format("Session value '%s' not assignable from type %s", name, clazz));
