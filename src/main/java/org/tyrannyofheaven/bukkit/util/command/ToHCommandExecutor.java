@@ -110,10 +110,10 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         InvocationChain invChain = new InvocationChain();
 
-        if (quoteAware)
-            args = split(ToHStringUtils.delimitedString(" ", (Object[])args));
-
         try {
+            if (quoteAware)
+                args = split(ToHStringUtils.delimitedString(" ", (Object[])args), true);
+
             // NB: We use command.getName() rather than label. This allows the
             // user to freely add aliases by editing plugin.yml. However,
             // this also makes aliases in @Command mostly useless.
@@ -128,7 +128,8 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
             // Show message if one was given
             if (hasText(e.getMessage()))
                 sendMessage(sender, "%s%s", ChatColor.RED, e.getMessage());
-            sendMessage(sender, invChain.getUsageString(usageOptions));
+            if (!invChain.isEmpty())
+                sendMessage(sender, invChain.getUsageString(usageOptions));
             return true;
         }
         catch (Error e) {
@@ -158,7 +159,7 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
                 argsNoQuery = args;
             }
 
-            args = split(ToHStringUtils.delimitedString(" ", (Object[])argsNoQuery));
+            args = split(ToHStringUtils.delimitedString(" ", (Object[])argsNoQuery), false);
             // Extend and add query
             args = Arrays.copyOfRange(args, 0, args.length + 1);
             args[args.length - 1] = query;
@@ -186,7 +187,7 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
         }
     }
 
-    private String[] split(String input) {
+    private String[] split(String input, boolean complete) {
         List<String> result = new ArrayList<String>();
 
         SplitState state = SplitState.NORMAL;
@@ -253,6 +254,13 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
                 throw new AssertionError("Unhandled SplitState." + state);
             }
         }
+
+        // Throw if quote isn't terminated. Note we don't really care about unfinished escape sequences.
+        if (complete && (state == SplitState.QUOTED || state == SplitState.QUOTED_ESCAPED))
+            throw new ParseException("Unterminated quote");
+
+        if (state == SplitState.ESCAPED)
+            current.append('\\');
 
         // Check final token
         if (current.length() > 0)

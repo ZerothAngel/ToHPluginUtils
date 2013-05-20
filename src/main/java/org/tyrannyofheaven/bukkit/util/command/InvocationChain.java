@@ -143,4 +143,8 @@ final class InvocationChain {
         chain.remove(chain.size() - 1);
     }
 
+    boolean isEmpty() {
+        return chain.isEmpty();
+    }
+
 }
