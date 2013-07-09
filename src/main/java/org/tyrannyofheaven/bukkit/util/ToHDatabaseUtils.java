@@ -40,6 +40,7 @@ import com.avaje.ebean.config.DataSourceConfig;
 import com.avaje.ebean.config.NamingConvention;
 import com.avaje.ebean.config.ServerConfig;
 import com.avaje.ebean.config.dbplatform.DatabasePlatform;
+import com.avaje.ebean.config.dbplatform.SQLitePlatform;
 import com.avaje.ebeaninternal.api.SpiEbeanServer;
 import com.avaje.ebeaninternal.server.ddl.CreateSequenceVisitor;
 import com.avaje.ebeaninternal.server.ddl.CreateTableVisitor;
@@ -47,6 +48,7 @@ import com.avaje.ebeaninternal.server.ddl.DdlGenContext;
 import com.avaje.ebeaninternal.server.ddl.DdlGenerator;
 import com.avaje.ebeaninternal.server.ddl.VisitorUtil;
 import com.avaje.ebeaninternal.server.deploy.BeanDescriptor;
+import com.avaje.ebeaninternal.server.lib.sql.TransactionIsolation;
 import com.google.common.io.CharStreams;
 
 public class ToHDatabaseUtils {
@@ -62,10 +64,11 @@ public class ToHDatabaseUtils {
      * @param plugin the JavaPlugin subclass
      * @param classLoader the plugin's class loader
      * @param namingConvention NamingConvention instance or null
+     * @param config Configuration instance for external database configuration or null
      * @return new EbeanServer instance
      */
     // R.I.P. BUKKIT-3919
-    public static EbeanServer createEbeanServer(JavaPlugin plugin, ClassLoader classLoader, NamingConvention namingConvention) {
+    public static EbeanServer createEbeanServer(JavaPlugin plugin, ClassLoader classLoader, NamingConvention namingConvention, Configuration config) {
         if (plugin == null)
             throw new IllegalArgumentException("plugin cannot be null");
         if (classLoader == null)
@@ -81,7 +84,28 @@ public class ToHDatabaseUtils {
         db.setRegister(false);
         db.setClasses(plugin.getDatabaseClasses());
         db.setName(plugin.getDescription().getName());
-        plugin.getServer().configureDbConfig(db);
+
+        // Configure via bukkit.yml or externally?
+        ConfigurationSection node = config != null ? config.getConfigurationSection("database") : null;
+        if (node == null) {
+            // Let Bukkit configure
+            plugin.getServer().configureDbConfig(db);
+        }
+        else {
+            DataSourceConfig ds = new DataSourceConfig();
+            ds.setDriver(node.getString("driver"));
+            ds.setUrl(node.getString("url"));
+            ds.setUsername(node.getString("username"));
+            ds.setPassword(node.getString("password"));
+            ds.setIsolationLevel(TransactionIsolation.getLevel(node.getString("isolation")));
+
+            if (ds.getDriver().contains("sqlite")) {
+                db.setDatabasePlatform(new SQLitePlatform());
+                db.getDatabasePlatform().getDbDdlSyntax().setIdentity("");
+            }
+
+            db.setDataSourceConfig(ds);
+        }
 
         DataSourceConfig ds = db.getDataSourceConfig();
 
