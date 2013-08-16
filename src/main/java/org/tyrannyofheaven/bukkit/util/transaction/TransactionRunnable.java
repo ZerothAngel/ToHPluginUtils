@@ -35,10 +35,13 @@ class TransactionRunnable implements Runnable, TransactionCallback<Object> {
 
     private final TransactionStrategy transactionStrategy;
 
+    private final boolean readOnly;
+
     private final List<Runnable> runnables = new ArrayList<Runnable>();
 
-    public TransactionRunnable(TransactionStrategy transactionStrategy) {
+    public TransactionRunnable(TransactionStrategy transactionStrategy, boolean readOnly) {
         this.transactionStrategy = transactionStrategy;
+        this.readOnly = readOnly;
     }
 
     public void addRunnable(Runnable runnable) {
@@ -60,7 +63,7 @@ class TransactionRunnable implements Runnable, TransactionCallback<Object> {
     @Override
     public void run() {
         try {
-            getTransactionStrategy().execute(this);
+            getTransactionStrategy().execute(this, readOnly);
         }
         catch (Error e) {
             throw e;

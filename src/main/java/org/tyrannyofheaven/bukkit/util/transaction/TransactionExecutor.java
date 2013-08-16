@@ -40,10 +40,10 @@ class TransactionExecutor implements Executor {
         currentTransactionRunnable.addRunnable(command);
     }
 
-    public void begin() {
+    public void begin(boolean readOnly) {
         if (currentTransactionRunnable != null)
             throw new IllegalStateException("Existing TransactionRunnable found");
-        currentTransactionRunnable = new TransactionRunnable(transactionStrategy);
+        currentTransactionRunnable = new TransactionRunnable(transactionStrategy, readOnly);
     }
 
     public TransactionRunnable end() {

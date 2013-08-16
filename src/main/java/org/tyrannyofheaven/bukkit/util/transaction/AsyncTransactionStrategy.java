@@ -39,13 +39,24 @@ public class AsyncTransactionStrategy implements TransactionStrategy {
         return transactionExecutor; // and by executor, we actually mean transactionExecutor
     }
 
+    /* (non-Javadoc)
+     * @see org.tyrannyofheaven.bukkit.util.transaction.TransactionStrategy#execute(org.tyrannyofheaven.bukkit.util.transaction.TransactionCallback)
+     */
     @Override
     public <T> T execute(TransactionCallback<T> callback) {
+        return execute(callback, false);
+    }
+
+    /* (non-Javadoc)
+     * @see org.tyrannyofheaven.bukkit.util.transaction.TransactionStrategy#execute(org.tyrannyofheaven.bukkit.util.transaction.TransactionCallback, boolean)
+     */
+    @Override
+    public <T> T execute(TransactionCallback<T> callback, boolean readOnly) {
         if (callback == null)
             throw new IllegalArgumentException("callback cannot be null");
         try {
             // Start collecting runnables
-            transactionExecutor.begin();
+            transactionExecutor.begin(readOnly);
             boolean success = false; // so we know we executed callback successfully
             try {
                 T result = callback.doInTransaction();

@@ -27,6 +27,14 @@ public class NullTransactionStrategy implements TransactionStrategy {
      */
     @Override
     public <T> T execute(TransactionCallback<T> callback) {
+        return execute(callback, false);
+    }
+
+    /* (non-Javadoc)
+     * @see org.tyrannyofheaven.bukkit.util.transaction.TransactionStrategy#execute(org.tyrannyofheaven.bukkit.util.transaction.TransactionCallback, boolean)
+     */
+    @Override
+    public <T> T execute(TransactionCallback<T> callback, boolean readOnly) {
         if (callback == null)
             throw new IllegalArgumentException("callback cannot be null");
         try {
