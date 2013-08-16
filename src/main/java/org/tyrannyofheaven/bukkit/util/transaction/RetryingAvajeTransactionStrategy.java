@@ -35,23 +35,43 @@ public class RetryingAvajeTransactionStrategy implements TransactionStrategy {
 
     private final int maxRetries;
 
+    private final PreCommitHook preCommitHook;
+
     /**
      * Create an instance associated with the given EbeanServer.
      * 
      * @param ebeanServer the EbeanServer to use for transactions
+     * @param maxRetries maximum number of retry attempts (total attempts = maxRetries + 1)
+     * @param the pre-commit hook or null
      */
-    public RetryingAvajeTransactionStrategy(EbeanServer ebeanServer, int maxRetries) {
+    public RetryingAvajeTransactionStrategy(EbeanServer ebeanServer, int maxRetries, PreCommitHook preCommitHook) {
         if (ebeanServer == null)
             throw new IllegalArgumentException("ebeanServer cannot be null");
         if (maxRetries < 1)
             throw new IllegalArgumentException("maxRetries must be > 0");
         this.ebeanServer = ebeanServer;
         this.maxRetries = maxRetries;
+        this.preCommitHook = preCommitHook;
+    }
+
+    /**
+     * Create an instance associated with the given EbeanServer.
+     * 
+     * @param ebeanServer the EbeanServer to use for transactions
+     * @param maxRetries maximum number of retry attempts (total attempts = maxRetries + 1)
+     */
+    public RetryingAvajeTransactionStrategy(EbeanServer ebeanServer, int maxRetries) {
+        this(ebeanServer, maxRetries, null);
     }
 
     // Retrieve the EbeanServer
     private EbeanServer getEbeanServer() {
         return ebeanServer;
+    }
+
+    // Retrieve the pre-commit hook
+    private PreCommitHook getPreCommitHook() {
+        return preCommitHook;
     }
 
     /* (non-Javadoc)
@@ -75,6 +95,8 @@ public class RetryingAvajeTransactionStrategy implements TransactionStrategy {
                 getEbeanServer().beginTransaction();
                 try {
                     T result = callback.doInTransaction();
+                    if (getPreCommitHook() != null)
+                        getPreCommitHook().preCommit(readOnly);
                     getEbeanServer().commitTransaction();
                     return result;
                 }

@@ -28,20 +28,38 @@ public class AvajeTransactionStrategy implements TransactionStrategy {
 
     private final EbeanServer ebeanServer;
 
+    private final PreCommitHook preCommitHook;
+
+    /**
+     * Create an instance associated with the given EbeanServer.
+     * 
+     * @param ebeanServer the EbeanServer to use for transactions
+     * @param preCommitHook the pre-commit hook or null
+     */
+    public AvajeTransactionStrategy(EbeanServer ebeanServer, PreCommitHook preCommitHook) {
+        if (ebeanServer == null)
+            throw new IllegalArgumentException("ebeanServer cannot be null");
+        this.ebeanServer = ebeanServer;
+        this.preCommitHook = preCommitHook;
+    }
+
     /**
      * Create an instance associated with the given EbeanServer.
      * 
      * @param ebeanServer the EbeanServer to use for transactions
      */
     public AvajeTransactionStrategy(EbeanServer ebeanServer) {
-        if (ebeanServer == null)
-            throw new IllegalArgumentException("ebeanServer cannot be null");
-        this.ebeanServer = ebeanServer;
+        this(ebeanServer, null);
     }
 
     // Retrieve the EbeanServer
     private EbeanServer getEbeanServer() {
         return ebeanServer;
+    }
+
+    // Retrieve the pre-commit hook
+    private PreCommitHook getPreCommitHook() {
+        return preCommitHook;
     }
 
     /* (non-Javadoc)
@@ -63,6 +81,8 @@ public class AvajeTransactionStrategy implements TransactionStrategy {
             getEbeanServer().beginTransaction();
             try {
                 T result = callback.doInTransaction();
+                if (getPreCommitHook() != null)
+                    getPreCommitHook().preCommit(readOnly);
                 getEbeanServer().commitTransaction();
                 return result;
             }
