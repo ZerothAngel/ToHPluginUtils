@@ -27,7 +27,7 @@ class TransactionExecutor implements Executor {
 
     private final TransactionStrategy transactionStrategy;
 
-    private TransactionRunnable currentTransactionRunnable;
+    private final ThreadLocal<TransactionRunnable> currentTransactionRunnableHolder = new ThreadLocal<TransactionRunnable>();
 
     public TransactionExecutor(TransactionStrategy transactionStrategy) {
         this.transactionStrategy = transactionStrategy;
@@ -35,23 +35,25 @@ class TransactionExecutor implements Executor {
 
     @Override
     public void execute(Runnable command) {
+        TransactionRunnable currentTransactionRunnable = currentTransactionRunnableHolder.get();
         if (currentTransactionRunnable == null)
             throw new IllegalStateException("No current TransactionRunnable");
         currentTransactionRunnable.addRunnable(command);
     }
 
     public void begin(boolean readOnly) {
+        TransactionRunnable currentTransactionRunnable = currentTransactionRunnableHolder.get();
         if (currentTransactionRunnable != null)
             throw new IllegalStateException("Existing TransactionRunnable found");
-        currentTransactionRunnable = new TransactionRunnable(transactionStrategy, readOnly);
+        currentTransactionRunnableHolder.set(new TransactionRunnable(transactionStrategy, readOnly));
     }
 
     public TransactionRunnable end() {
+        TransactionRunnable currentTransactionRunnable = currentTransactionRunnableHolder.get();
         if (currentTransactionRunnable == null)
             throw new IllegalStateException("No current TransactionRunnable");
-        TransactionRunnable current = currentTransactionRunnable;
-        currentTransactionRunnable = null;
-        return current;
+        currentTransactionRunnableHolder.remove();
+        return currentTransactionRunnable;
     }
 
 }
