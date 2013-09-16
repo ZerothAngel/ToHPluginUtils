@@ -16,8 +16,8 @@
   </properties>
   <repositories>
     <repository>
-      <id>bukkit-releases</id>
-      <url>http://repo.bukkit.org/content/repositories/releases</url>
+      <id>bukkit-repo</id>
+      <url>http://repo.bukkit.org/content/groups/public</url>
     </repository>
   </repositories>
   <dependencies>
