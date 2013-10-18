@@ -30,13 +30,25 @@ public class AsyncTransactionStrategy implements TransactionStrategy {
 
     private final Executor executor;
 
-    public AsyncTransactionStrategy(TransactionStrategy transactionStrategy, Executor executor) {
+    private final PreBeginHook preBeginHook;
+
+    public AsyncTransactionStrategy(TransactionStrategy transactionStrategy, Executor executor, PreBeginHook preBeginHook) {
         transactionExecutor = new TransactionExecutor(transactionStrategy);
         this.executor = executor;
+        this.preBeginHook = preBeginHook;
+    }
+
+    public AsyncTransactionStrategy(TransactionStrategy transactionStrategy, Executor executor) {
+        this(transactionStrategy, executor, null);
     }
 
     public Executor getExecutor() {
         return transactionExecutor; // and by executor, we actually mean transactionExecutor
+    }
+
+    // Retrieve pre-begin hook
+    private PreBeginHook getPreBeginHook() {
+        return preBeginHook;
     }
 
     /* (non-Javadoc)
@@ -56,6 +68,8 @@ public class AsyncTransactionStrategy implements TransactionStrategy {
             throw new IllegalArgumentException("callback cannot be null");
         try {
             // Start collecting runnables
+            if (getPreBeginHook() != null)
+                getPreBeginHook().preBegin(readOnly);
             transactionExecutor.begin(readOnly);
             boolean success = false; // so we know we executed callback successfully
             try {

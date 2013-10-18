@@ -16,19 +16,19 @@
 package org.tyrannyofheaven.bukkit.util.transaction;
 
 /**
- * Optional hook to be called before transaction commit.
+ * Optional hook to be called before transaction start.
  * 
  * @author zerothangel
  */
-public interface PreCommitHook {
+public interface PreBeginHook {
 
     /**
-     * Callback called immediately before transaction commit. If you want to
-     * abort, throw an exception.
+     * Callback called immediately before transaction begins. If you want to
+     * abort, throw an exception
      * 
      * @param readOnly the read-only flag for this transaction
      * @throws Exception an exception signifying that a rollback should be performed
      */
-    public void preCommit(boolean readOnly) throws Exception;
+    public void preBegin(boolean readOnly) throws Exception;
 
 }

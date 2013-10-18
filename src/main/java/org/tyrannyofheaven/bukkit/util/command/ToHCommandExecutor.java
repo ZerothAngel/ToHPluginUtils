@@ -49,9 +49,11 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
 
     private UsageOptions usageOptions = new DefaultUsageOptions();
 
-    private Map<String, TypeCompleter> typeCompleterRegistry = new HashMap<String, TypeCompleter>();
+    private final Map<String, TypeCompleter> typeCompleterRegistry = new HashMap<String, TypeCompleter>();
 
     private boolean quoteAware = false;
+
+    private CommandExceptionHandler exceptionHandler;
 
     /**
      * Create an instance.
@@ -103,6 +105,11 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
         return this;
     }
 
+    public ToHCommandExecutor<T> setExceptionHandler(CommandExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
+        return this;
+    }
+
     /* (non-Javadoc)
      * @see org.bukkit.command.CommandExecutor#onCommand(org.bukkit.command.CommandSender, org.bukkit.command.Command, java.lang.String, java.lang.String[])
      */
@@ -137,6 +144,8 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
             throw e;
         }
         catch (Throwable t) {
+            if (exceptionHandler != null && exceptionHandler.handleException(sender, command, label, args, t))
+                return true;
             sendMessage(sender, ChatColor.RED + "Plugin error; see server log.");
             error(plugin, "Command handler exception:", t);
             return true;

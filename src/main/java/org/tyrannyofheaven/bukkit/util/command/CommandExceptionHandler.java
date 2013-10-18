@@ -13,22 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.tyrannyofheaven.bukkit.util.transaction;
+package org.tyrannyofheaven.bukkit.util.command;
+
+import org.bukkit.command.CommandSender;
 
 /**
- * Optional hook to be called before transaction commit.
+ * Allows customized handling of exceptions thrown by command handlers.
  * 
  * @author zerothangel
  */
-public interface PreCommitHook {
+public interface CommandExceptionHandler {
 
     /**
-     * Callback called immediately before transaction commit. If you want to
-     * abort, throw an exception.
+     * Handle the specified exception.
      * 
-     * @param readOnly the read-only flag for this transaction
-     * @throws Exception an exception signifying that a rollback should be performed
+     * @param sender Source of the command
+     * @param command Command which was executed
+     * @param label Alias of the command which was used
+     * @param args Passed command arguments
+     * @param t the exception thrown
+     * @return true if the exception was handled, false otherwise
      */
-    public void preCommit(boolean readOnly) throws Exception;
+    public boolean handleException(CommandSender sender, org.bukkit.command.Command command, String label, String[] args, Throwable t);
 
 }

@@ -35,6 +35,8 @@ public class RetryingAvajeTransactionStrategy implements TransactionStrategy {
 
     private final int maxRetries;
 
+    private final PreBeginHook preBeginHook;
+
     private final PreCommitHook preCommitHook;
 
     /**
@@ -44,13 +46,14 @@ public class RetryingAvajeTransactionStrategy implements TransactionStrategy {
      * @param maxRetries maximum number of retry attempts (total attempts = maxRetries + 1)
      * @param the pre-commit hook or null
      */
-    public RetryingAvajeTransactionStrategy(EbeanServer ebeanServer, int maxRetries, PreCommitHook preCommitHook) {
+    public RetryingAvajeTransactionStrategy(EbeanServer ebeanServer, int maxRetries, PreBeginHook preBeginHook, PreCommitHook preCommitHook) {
         if (ebeanServer == null)
             throw new IllegalArgumentException("ebeanServer cannot be null");
         if (maxRetries < 1)
             throw new IllegalArgumentException("maxRetries must be > 0");
         this.ebeanServer = ebeanServer;
         this.maxRetries = maxRetries;
+        this.preBeginHook = preBeginHook;
         this.preCommitHook = preCommitHook;
     }
 
@@ -61,12 +64,17 @@ public class RetryingAvajeTransactionStrategy implements TransactionStrategy {
      * @param maxRetries maximum number of retry attempts (total attempts = maxRetries + 1)
      */
     public RetryingAvajeTransactionStrategy(EbeanServer ebeanServer, int maxRetries) {
-        this(ebeanServer, maxRetries, null);
+        this(ebeanServer, maxRetries, null, null);
     }
 
     // Retrieve the EbeanServer
     private EbeanServer getEbeanServer() {
         return ebeanServer;
+    }
+
+    // Retrieve the pre-begin hook
+    private PreBeginHook getPreBeginHook() {
+        return preBeginHook;
     }
 
     // Retrieve the pre-commit hook
@@ -92,6 +100,8 @@ public class RetryingAvajeTransactionStrategy implements TransactionStrategy {
         PersistenceException savedPE = null;
         for (int attempt = -1; attempt < maxRetries; attempt++) {
             try {
+                if (getPreBeginHook() != null)
+                    getPreBeginHook().preBegin(readOnly);
                 getEbeanServer().beginTransaction();
                 try {
                     T result = callback.doInTransaction();

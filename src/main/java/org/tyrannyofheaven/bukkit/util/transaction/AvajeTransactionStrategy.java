@@ -28,6 +28,8 @@ public class AvajeTransactionStrategy implements TransactionStrategy {
 
     private final EbeanServer ebeanServer;
 
+    private final PreBeginHook preBeginHook;
+
     private final PreCommitHook preCommitHook;
 
     /**
@@ -36,10 +38,11 @@ public class AvajeTransactionStrategy implements TransactionStrategy {
      * @param ebeanServer the EbeanServer to use for transactions
      * @param preCommitHook the pre-commit hook or null
      */
-    public AvajeTransactionStrategy(EbeanServer ebeanServer, PreCommitHook preCommitHook) {
+    public AvajeTransactionStrategy(EbeanServer ebeanServer, PreBeginHook preBeginHook, PreCommitHook preCommitHook) {
         if (ebeanServer == null)
             throw new IllegalArgumentException("ebeanServer cannot be null");
         this.ebeanServer = ebeanServer;
+        this.preBeginHook = preBeginHook;
         this.preCommitHook = preCommitHook;
     }
 
@@ -49,12 +52,17 @@ public class AvajeTransactionStrategy implements TransactionStrategy {
      * @param ebeanServer the EbeanServer to use for transactions
      */
     public AvajeTransactionStrategy(EbeanServer ebeanServer) {
-        this(ebeanServer, null);
+        this(ebeanServer, null, null);
     }
 
     // Retrieve the EbeanServer
     private EbeanServer getEbeanServer() {
         return ebeanServer;
+    }
+
+    // Retrieve the pre-begin hook
+    public PreBeginHook getPreBeginHook() {
+        return preBeginHook;
     }
 
     // Retrieve the pre-commit hook
@@ -78,6 +86,8 @@ public class AvajeTransactionStrategy implements TransactionStrategy {
         if (callback == null)
             throw new IllegalArgumentException("callback cannot be null");
         try {
+            if (getPreBeginHook() != null)
+                getPreBeginHook().preBegin(readOnly);
             getEbeanServer().beginTransaction();
             try {
                 T result = callback.doInTransaction();
