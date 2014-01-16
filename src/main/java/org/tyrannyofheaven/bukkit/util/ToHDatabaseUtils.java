@@ -183,7 +183,7 @@ public class ToHDatabaseUtils {
         }
         if (pluginEntity == null)
             throw new IllegalArgumentException("plugin.getDatabaseClasses() must have a non-ToHSchemaVersion class");
-        log(plugin, Level.FINE, "Selected %s as plugin-specific entity", pluginEntity.getSimpleName());
+        log(plugin, Level.CONFIG, "Selected %s as plugin-specific entity", pluginEntity.getSimpleName());
 
         EbeanServer ebeanServer = plugin.getDatabase();
         SpiEbeanServer spiEbeanServer = (SpiEbeanServer)ebeanServer;
@@ -280,7 +280,7 @@ public class ToHDatabaseUtils {
             }
             else {
                 // No more versions
-                log(plugin, Level.FINE, "Schema update done");
+                log(plugin, Level.CONFIG, "Schema update done");
                 break;
             }
         }

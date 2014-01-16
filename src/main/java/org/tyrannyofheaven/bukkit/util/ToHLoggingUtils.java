@@ -77,7 +77,7 @@ public class ToHLoggingUtils {
     }
 
     /**
-     * Log a message at FINE level.
+     * Log a message at CONFIG level.
      * 
      * @param plugin the plugin
      * @param format the format message
@@ -86,7 +86,7 @@ public class ToHLoggingUtils {
      *   It will not be available for the format.
      */
     public static void debug(Plugin plugin, String format, Object... args) {
-        log(plugin, Level.FINE, format, args);
+        log(plugin, Level.CONFIG, format, args);
     }
 
     /**
