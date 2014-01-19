@@ -19,6 +19,7 @@ import static org.tyrannyofheaven.bukkit.util.ToHLoggingUtils.error;
 import static org.tyrannyofheaven.bukkit.util.ToHLoggingUtils.warn;
 import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.sendMessage;
 import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
+import static org.tyrannyofheaven.bukkit.util.command.reader.CommandReader.abortBatchProcessing;
 import static org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils.displayPermissionException;
 
 import java.util.ArrayList;
@@ -129,6 +130,7 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
         }
         catch (PermissionException e) {
             displayPermissionException(sender, e);
+            abortBatchProcessing();
             return true;
         }
         catch (ParseException e) {
@@ -137,6 +139,7 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
                 sendMessage(sender, "%s%s", ChatColor.RED, e.getMessage());
             if (!invChain.isEmpty())
                 sendMessage(sender, invChain.getUsageString(usageOptions));
+            abortBatchProcessing();
             return true;
         }
         catch (Error e) {
@@ -144,10 +147,13 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
             throw e;
         }
         catch (Throwable t) {
-            if (exceptionHandler != null && exceptionHandler.handleException(sender, command, label, args, t))
+            if (exceptionHandler != null && exceptionHandler.handleException(sender, command, label, args, t)) {
+                // NB It is up to the CommandExceptionHandler whether or not to call abortBatchProcessing()
                 return true;
+            }
             sendMessage(sender, ChatColor.RED + "Plugin error; see server log.");
             error(plugin, "Command handler exception:", t);
+            abortBatchProcessing();
             return true;
         }
     }
