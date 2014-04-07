@@ -188,8 +188,18 @@ public class CommandReader {
      * if the handler was not called within {@link #read(Server, CommandSender, InputStream, boolean, Plugin...)}.
      */
     public static void abortBatchProcessing() {
-        if (abortFlags.get() != null)
+        if (isBatchProcessing())
             abortFlags.set(Boolean.TRUE);
+    }
+
+    /**
+     * Tests if current thread is currently running batch commands, e.g.
+     * called within {@link #read(Server, CommandSender, InputStream, boolean, Plugin...)}.
+     * 
+     * @return true if the current thread is running batch commands
+     */
+    public static boolean isBatchProcessing() {
+        return abortFlags.get() != null;
     }
 
     // Holder for command invocation
