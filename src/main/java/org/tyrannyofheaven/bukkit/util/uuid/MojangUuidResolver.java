@@ -36,16 +36,20 @@ public class MojangUuidResolver implements UuidResolver {
 
     private static final UuidDisplayName NULL_UDN = new UuidDisplayName(UUID.randomUUID(), "NOT FOUND");
 
-    private final Cache<String, UuidDisplayName> cache = CacheBuilder.newBuilder()
-            .maximumSize(100)
-            .expireAfterWrite(5L, TimeUnit.MINUTES)
-            .build(new CacheLoader<String, UuidDisplayName>() {
-                @Override
-                public UuidDisplayName load(String key) throws Exception {
-                    UuidDisplayName udn = _resolve(key);
-                    return udn != null ? udn : NULL_UDN; // Doesn't like nulls, so we use a marker object instead
-                }
-            });
+    private final Cache<String, UuidDisplayName> cache;
+
+    public MojangUuidResolver(int cacheMaxSize, long cacheTtl, TimeUnit cacheTtlUnits) {
+        cache = CacheBuilder.newBuilder()
+                .maximumSize(cacheMaxSize)
+                .expireAfterWrite(cacheTtl, cacheTtlUnits)
+                .build(new CacheLoader<String, UuidDisplayName>() {
+                    @Override
+                    public UuidDisplayName load(String key) throws Exception {
+                        UuidDisplayName udn = _resolve(key);
+                        return udn != null ? udn : NULL_UDN; // Doesn't like nulls, so we use a marker object instead
+                    }
+                });
+    }
 
     @Override
     public UuidDisplayName resolve(String username) {
