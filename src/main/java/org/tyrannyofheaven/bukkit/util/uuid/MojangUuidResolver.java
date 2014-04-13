@@ -63,6 +63,16 @@ public class MojangUuidResolver implements UuidResolver {
     }
 
     @Override
+    public UuidDisplayName resolve(String username, boolean cacheOnly) {
+        if (cacheOnly) {
+            UuidDisplayName udn = cache.asMap().get(username.toLowerCase());
+            if (udn == null) return null;
+            return udn != NULL_UDN ? udn : null; // NB Can't tell between "not cached" and "maps to null"
+        }
+        else return resolve(username); // Same as normal version
+    }
+
+    @Override
     public Map<String, UuidDisplayName> resolve(Collection<String> usernames) throws IOException {
         Map<String, UuidDisplayName> result = new LinkedHashMap<String, UuidDisplayName>();
 

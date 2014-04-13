@@ -31,6 +31,27 @@ public interface UuidResolver {
      */
     public UuidDisplayName resolve(String username);
 
+    /**
+     * Looks up the UUID of a username. Possibly blocking.
+     * 
+     * @param username the username
+     * @param cacheOnly if true, then only the cache (if this implementation supports one) will
+     *     be consulted. This method must not block in that case. If false then behaves exactly
+     *     like {@link #resolve(String)}.
+     * @return a {@link UuidDisplayName} instance. null if lookup failed. Note that both
+     *     properties (uuid and displayName) must be returned. If no display name
+     *     lookup is possible, simply returning the passed-in username is acceptable.
+     */
+    public UuidDisplayName resolve(String username, boolean cacheOnly);
+
+    /**
+     * Bulk resolution of usernames to UUIDs. Possibly blocking.
+     * 
+     * @param usernames collection of usernames to resolve
+     * @return map of lowercased username to corresponding {@link UuidDisplayName}. Like other
+     *     methods in this interface, both properties must be filled.
+     * @throws IOException if something went wrong resolving the usernames
+     */
     public Map<String, UuidDisplayName> resolve(Collection<String> usernames) throws IOException;
 
 }

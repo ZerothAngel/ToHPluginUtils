@@ -92,12 +92,20 @@ public class CommandUuidResolver {
                     }
                 }
                 else {
-                    // Resolve async
-                    sendMessage(sender, colorize("{GRAY}(Resolving UUID...)"));
-                    Runnable task = new UsernameResolverHandlerRunnable(this, plugin, uuidResolver, sender, name, skip, handler);
-                    // NB Bukkit#getOfflinePlayer(String) provides almost the same service
-                    // However, it's not known whether it is fully thread-safe.
-                    executor.execute(task);
+                    // Check if cached by resolver
+                    udn = uuidResolver.resolve(name, true);
+                    if (udn != null) {
+                        // If so, run inline
+                        handler.process(sender, udn.getDisplayName(), udn.getUuid(), skip);
+                    }
+                    else {
+                        // As an absolute last resort, resolve and run async
+                        sendMessage(sender, colorize("{GRAY}(Resolving UUID...)"));
+                        Runnable task = new UsernameResolverHandlerRunnable(this, plugin, uuidResolver, sender, name, skip, handler);
+                        // NB Bukkit#getOfflinePlayer(String) provides almost the same service
+                        // However, it's not known whether it is fully thread-safe.
+                        executor.execute(task);
+                    }
                 }
             }
         }
