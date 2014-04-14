@@ -52,6 +52,6 @@ public interface UuidResolver {
      *     methods in this interface, both properties must be filled.
      * @throws IOException if something went wrong resolving the usernames
      */
-    public Map<String, UuidDisplayName> resolve(Collection<String> usernames) throws IOException;
+    public Map<String, UuidDisplayName> resolve(Collection<String> usernames) throws Exception;
 
 }

@@ -12,27 +12,31 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import com.google.common.base.Charsets;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
 
 public class MojangUuidResolver implements UuidResolver {
 
-    private final Gson gson = new Gson();
+    private static final String AGENT = "minecraft";
 
     private static final UuidDisplayName NULL_UDN = new UuidDisplayName(UUID.randomUUID(), "NOT FOUND");
 
@@ -68,6 +72,9 @@ public class MojangUuidResolver implements UuidResolver {
 
     @Override
     public UuidDisplayName resolve(String username, boolean cacheOnly) {
+        if (!hasText(username))
+            throw new IllegalArgumentException("username must have a value");
+
         if (cacheOnly) {
             UuidDisplayName udn = cache.asMap().get(username.toLowerCase());
             if (udn == null) return null;
@@ -77,7 +84,10 @@ public class MojangUuidResolver implements UuidResolver {
     }
 
     @Override
-    public Map<String, UuidDisplayName> resolve(Collection<String> usernames) throws IOException {
+    public Map<String, UuidDisplayName> resolve(Collection<String> usernames) throws Exception {
+        if (usernames == null)
+            throw new IllegalArgumentException("usernames cannot be null");
+
         Map<String, UuidDisplayName> result = new LinkedHashMap<String, UuidDisplayName>();
 
         final int BATCH_SIZE = 100;
@@ -86,7 +96,7 @@ public class MojangUuidResolver implements UuidResolver {
         for (List<String> sublist : Lists.partition(new ArrayList<String>(usernames), BATCH_SIZE)) {
             List<ProfileCriteria> criteriaList = new ArrayList<ProfileCriteria>(sublist.size());
             for (String username : sublist) {
-                criteriaList.add(new ProfileCriteria(username, "minecraft"));
+                criteriaList.add(new ProfileCriteria(username, AGENT));
             }
             ProfileCriteria[] criteria = criteriaList.toArray(new ProfileCriteria[criteriaList.size()]);
 
@@ -94,8 +104,8 @@ public class MojangUuidResolver implements UuidResolver {
                 ProfileSearchResult searchResult = searchProfiles(page, criteria);
                 if (searchResult.getSize() == 0) break;
                 for (int i = 0; i < searchResult.getSize(); i++) {
-                    String username = searchResult.getProfiles()[i].getName();
-                    UUID uuid = uncanonicalizeUuid(searchResult.getProfiles()[i].getId());
+                    String username = searchResult.getProfiles().get(i).getName();
+                    UUID uuid = uncanonicalizeUuid(searchResult.getProfiles().get(i).getId());
                     result.put(username.toLowerCase(), new UuidDisplayName(uuid, username));
                 }
             }
@@ -104,16 +114,16 @@ public class MojangUuidResolver implements UuidResolver {
         return result;
     }
 
-    private UuidDisplayName _resolve(String username) throws IOException {
+    private UuidDisplayName _resolve(String username) throws IOException, ParseException {
         if (!hasText(username))
             throw new IllegalArgumentException("username must have a value");
 
-        ProfileSearchResult result = searchProfiles(1, new ProfileCriteria(username, "minecraft"));
+        ProfileSearchResult result = searchProfiles(1, new ProfileCriteria(username, AGENT));
 
         if (result.getSize() < 1) return null;
 
         // TODO what to do if there are >1?
-        Profile p = result.getProfiles()[0];
+        Profile p = result.getProfiles().get(0);
 
         String uuidString = p.getId();
         UUID uuid;
@@ -129,8 +139,8 @@ public class MojangUuidResolver implements UuidResolver {
         return new UuidDisplayName(uuid, displayName);
     }
 
-    private ProfileSearchResult searchProfiles(int page, ProfileCriteria... criteria) throws MalformedURLException, IOException, ProtocolException {
-        String body = gson.toJson(criteria);
+    private ProfileSearchResult searchProfiles(int page, ProfileCriteria... criteria) throws IOException, ParseException {
+        String body = createBody(criteria);
 
         URL url = new URL("https://api.mojang.com/profiles/page/" + page);
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
@@ -151,19 +161,45 @@ public class MojangUuidResolver implements UuidResolver {
             writer.close();
         }
 
-        ProfileSearchResult result;
-
         Reader reader = new InputStreamReader(connection.getInputStream());
+        JSONObject response;
         try {
-            result = gson.fromJson(reader, ProfileSearchResult.class);
+            JSONParser parser = new JSONParser();
+            response = (JSONObject)parser.parse(reader);
         }
         finally {
             reader.close();
         }
+        
+        JSONArray profiles = (JSONArray)response.get("profiles");
+        Number size = (Number)response.get("size");
+        return new ProfileSearchResult(parseProfiles(profiles), size.intValue());
+    }
+
+    private List<Profile> parseProfiles(JSONArray profiles) {
+        List<Profile> result = new ArrayList<Profile>();
+        for (Object obj : profiles) {
+            JSONObject jsonProfile = (JSONObject)obj;
+            String id = (String)jsonProfile.get("id");
+            String name = (String)jsonProfile.get("name");
+            result.add(new Profile(id, name));
+        }
         return result;
     }
 
-    public static class ProfileCriteria {
+    @SuppressWarnings("unchecked")
+    private String createBody(ProfileCriteria... criteria) {
+        List<JSONObject> jsonArray = new ArrayList<JSONObject>();
+        for (ProfileCriteria pc : criteria) {
+            JSONObject obj = new JSONObject();
+            obj.put("name", pc.getName());
+            obj.put("agent", pc.getAgent());
+            jsonArray.add(obj);
+        }
+        return JSONValue.toJSONString(jsonArray);
+    }
+
+    private static class ProfileCriteria {
         
         private final String name;
         
@@ -184,52 +220,46 @@ public class MojangUuidResolver implements UuidResolver {
         
     }
 
-    public static class ProfileSearchResult {
+    private static class ProfileSearchResult {
 
-        private Profile[] profiles;
+        private final List<Profile> profiles;
 
-        private int size;
+        private final int size;
 
-        public Profile[] getProfiles() {
-            return profiles;
+        private ProfileSearchResult(List<Profile> profiles, int size) {
+            this.profiles = Collections.unmodifiableList(profiles);
+            this.size = size;
         }
 
-        public void setProfiles(Profile[] profiles) {
-            this.profiles = profiles;
+        public List<Profile> getProfiles() {
+            return profiles;
         }
 
         public int getSize() {
             return size;
         }
 
-        public void setSize(int size) {
-            this.size = size;
-        }
-
     }
 
-    public static class Profile {
+    private static class Profile {
         
-        private String id;
+        private final String id;
         
-        private String name;
+        private final String name;
+
+        private Profile(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
 
         public String getId() {
             return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
         }
 
         public String getName() {
             return name;
         }
 
-        public void setName(String name) {
-            this.name = name;
-        }
-        
     }
 
 }
