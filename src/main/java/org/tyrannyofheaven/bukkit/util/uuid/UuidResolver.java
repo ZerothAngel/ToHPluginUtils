@@ -18,6 +18,7 @@ package org.tyrannyofheaven.bukkit.util.uuid;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.UUID;
 
 public interface UuidResolver {
 
@@ -53,5 +54,15 @@ public interface UuidResolver {
      * @throws IOException if something went wrong resolving the usernames
      */
     public Map<String, UuidDisplayName> resolve(Collection<String> usernames) throws Exception;
+
+    /**
+     * Pre-load the cache (if this implementation has one) with the given
+     * username-to-UUID mapping. Note: the underlying implementation is under
+     * no obligation to honor this mapping; this is just a hint.
+     * 
+     * @param username the username
+     * @param uuid the associated UUID
+     */
+    public void preload(String username, UUID uuid);
 
 }

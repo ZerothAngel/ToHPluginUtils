@@ -104,6 +104,16 @@ public class MojangUuidResolver implements UuidResolver {
         return result;
     }
 
+    @Override
+    public void preload(String username, UUID uuid) {
+        if (!hasText(username))
+            throw new IllegalArgumentException("username must have a value");
+        if (uuid == null)
+            throw new IllegalArgumentException("uuid cannot be null");
+
+        cache.asMap().put(username.toLowerCase(), new UuidDisplayName(uuid, username));
+    }
+
     private UuidDisplayName _resolve(String username) throws IOException, ParseException {
         if (!hasText(username))
             throw new IllegalArgumentException("username must have a value");
