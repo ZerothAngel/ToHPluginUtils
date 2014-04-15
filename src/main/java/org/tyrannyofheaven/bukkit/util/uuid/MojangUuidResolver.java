@@ -90,24 +90,14 @@ public class MojangUuidResolver implements UuidResolver {
 
         Map<String, UuidDisplayName> result = new LinkedHashMap<String, UuidDisplayName>();
 
-        final int BATCH_SIZE = 100;
-        final int MAX_PAGES = BATCH_SIZE; // The off chance that it returns 1 per page
+        final int BATCH_SIZE = 97; // Should be <= Mojang's AccountsClient's PROFILES_PER_REQUEST (100)
 
         for (List<String> sublist : Lists.partition(new ArrayList<String>(usernames), BATCH_SIZE)) {
-            List<ProfileCriteria> criteriaList = new ArrayList<ProfileCriteria>(sublist.size());
-            for (String username : sublist) {
-                criteriaList.add(new ProfileCriteria(username, AGENT));
-            }
-            ProfileCriteria[] criteria = criteriaList.toArray(new ProfileCriteria[criteriaList.size()]);
-
-            for (int page = 1; page <= MAX_PAGES; page++) {
-                ProfileSearchResult searchResult = searchProfiles(page, criteria);
-                if (searchResult.getSize() == 0) break;
-                for (int i = 0; i < searchResult.getSize(); i++) {
-                    String username = searchResult.getProfiles().get(i).getName();
-                    UUID uuid = uncanonicalizeUuid(searchResult.getProfiles().get(i).getId());
-                    result.put(username.toLowerCase(), new UuidDisplayName(uuid, username));
-                }
+            List<Profile> searchResult = searchProfiles(sublist);
+            for (Profile profile : searchResult) {
+                String username = profile.getName();
+                UUID uuid = uncanonicalizeUuid(profile.getId());
+                result.put(username.toLowerCase(), new UuidDisplayName(uuid, username));
             }
         }
 
@@ -118,12 +108,12 @@ public class MojangUuidResolver implements UuidResolver {
         if (!hasText(username))
             throw new IllegalArgumentException("username must have a value");
 
-        ProfileSearchResult result = searchProfiles(1, new ProfileCriteria(username, AGENT));
+        List<Profile> result = searchProfiles(Collections.singletonList(username));
 
-        if (result.getSize() < 1) return null;
+        if (result.size() < 1) return null;
 
         // TODO what to do if there are >1?
-        Profile p = result.getProfiles().get(0);
+        Profile p = result.get(0);
 
         String uuidString = p.getId();
         UUID uuid;
@@ -139,10 +129,10 @@ public class MojangUuidResolver implements UuidResolver {
         return new UuidDisplayName(uuid, displayName);
     }
 
-    private ProfileSearchResult searchProfiles(int page, ProfileCriteria... criteria) throws IOException, ParseException {
-        String body = createBody(criteria);
+    private List<Profile> searchProfiles(List<String> usernames) throws IOException, ParseException {
+        String body = JSONValue.toJSONString(usernames);
 
-        URL url = new URL("https://api.mojang.com/profiles/page/" + page);
+        URL url = new URL("https://api.mojang.com/profiles/" + AGENT);
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
@@ -162,21 +152,19 @@ public class MojangUuidResolver implements UuidResolver {
         }
 
         Reader reader = new InputStreamReader(connection.getInputStream());
-        JSONObject response;
+        JSONArray profiles;
         try {
-            JSONParser parser = new JSONParser();
-            response = (JSONObject)parser.parse(reader);
+            JSONParser parser = new JSONParser(); // NB Not thread safe
+            profiles = (JSONArray)parser.parse(reader);
         }
         finally {
             reader.close();
         }
         
-        JSONArray profiles = (JSONArray)response.get("profiles");
-        Number size = (Number)response.get("size");
-        return new ProfileSearchResult(parseProfiles(profiles), size.intValue());
+        return convertResponse(profiles);
     }
 
-    private List<Profile> parseProfiles(JSONArray profiles) {
+    private List<Profile> convertResponse(JSONArray profiles) {
         List<Profile> result = new ArrayList<Profile>();
         for (Object obj : profiles) {
             JSONObject jsonProfile = (JSONObject)obj;
@@ -185,60 +173,6 @@ public class MojangUuidResolver implements UuidResolver {
             result.add(new Profile(id, name));
         }
         return result;
-    }
-
-    @SuppressWarnings("unchecked")
-    private String createBody(ProfileCriteria... criteria) {
-        List<JSONObject> jsonArray = new ArrayList<JSONObject>();
-        for (ProfileCriteria pc : criteria) {
-            JSONObject obj = new JSONObject();
-            obj.put("name", pc.getName());
-            obj.put("agent", pc.getAgent());
-            jsonArray.add(obj);
-        }
-        return JSONValue.toJSONString(jsonArray);
-    }
-
-    private static class ProfileCriteria {
-        
-        private final String name;
-        
-        private final String agent;
-
-        public ProfileCriteria(String name, String agent) {
-            this.name = name;
-            this.agent = agent;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getAgent() {
-            return agent;
-        }
-        
-    }
-
-    private static class ProfileSearchResult {
-
-        private final List<Profile> profiles;
-
-        private final int size;
-
-        private ProfileSearchResult(List<Profile> profiles, int size) {
-            this.profiles = Collections.unmodifiableList(profiles);
-            this.size = size;
-        }
-
-        public List<Profile> getProfiles() {
-            return profiles;
-        }
-
-        public int getSize() {
-            return size;
-        }
-
     }
 
     private static class Profile {
