@@ -20,7 +20,6 @@ import static org.tyrannyofheaven.bukkit.util.ToHLoggingUtils.warn;
 import static org.tyrannyofheaven.bukkit.util.ToHMessageUtils.sendMessage;
 import static org.tyrannyofheaven.bukkit.util.ToHStringUtils.hasText;
 import static org.tyrannyofheaven.bukkit.util.command.reader.CommandReader.abortBatchProcessing;
-import static org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils.displayPermissionException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +35,7 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.plugin.Plugin;
 import org.tyrannyofheaven.bukkit.util.ToHStringUtils;
 import org.tyrannyofheaven.bukkit.util.permissions.PermissionException;
+import org.tyrannyofheaven.bukkit.util.permissions.PermissionUtils;
 
 /**
  * A Bukkit CommandExecutor implementation that ties everything together.
@@ -55,6 +55,8 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
     private boolean quoteAware = false;
 
     private CommandExceptionHandler exceptionHandler;
+
+    private String verbosePermissionErrorPermission;
 
     /**
      * Create an instance.
@@ -108,6 +110,11 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
 
     public ToHCommandExecutor<T> setExceptionHandler(CommandExceptionHandler exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
+        return this;
+    }
+
+    public ToHCommandExecutor<T> setVerbosePermissionErrorPermission(String verbosePermissionErrorPermission) {
+        this.verbosePermissionErrorPermission = verbosePermissionErrorPermission;
         return this;
     }
 
@@ -199,6 +206,15 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
         catch (Throwable t) {
             warn(plugin, "Tab completion exception:", t);
             return Collections.emptyList();
+        }
+    }
+
+    private void displayPermissionException(CommandSender sender, PermissionException e) {
+        if (verbosePermissionErrorPermission == null || sender.hasPermission(verbosePermissionErrorPermission)) {
+            PermissionUtils.displayPermissionException(sender, e);
+        }
+        else {
+            sendMessage(sender, ChatColor.RED + "You don't have permission to do this.");
         }
     }
 
