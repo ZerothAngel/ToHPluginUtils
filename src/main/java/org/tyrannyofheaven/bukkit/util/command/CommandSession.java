@@ -26,7 +26,7 @@ import java.util.Map;
  */
 public final class CommandSession {
 
-    private final Map<String, Object> data = new HashMap<String, Object>();
+    private final Map<String, Object> data = new HashMap<>();
     
     /**
      * Retrieves a session value.

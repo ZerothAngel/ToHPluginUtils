@@ -29,7 +29,7 @@ public class AnnotatedYamlConfiguration extends YamlConfiguration {
     private final Yaml yaml = new Yaml(new YamlConstructor(), yamlRepresenter, yamlOptions);
 
     // Map from property key to comment. Comment may have multiple lines that are newline-separated.
-    private final Map<String, String> comments = new HashMap<String, String>();
+    private final Map<String, String> comments = new HashMap<>();
 
     @Override
     public String saveToString() {

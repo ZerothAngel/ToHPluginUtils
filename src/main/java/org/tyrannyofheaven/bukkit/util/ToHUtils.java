@@ -36,7 +36,7 @@ public class ToHUtils {
 
     static {
         // Build materialMap consisting of lowercased names without underscores
-        Map<String, Material> mm = new HashMap<String, Material>();
+        Map<String, Material> mm = new HashMap<>();
         for (Material material : Material.values()) {
             String name = material.name().toLowerCase().replaceAll("_", "");
             mm.put(name, material);

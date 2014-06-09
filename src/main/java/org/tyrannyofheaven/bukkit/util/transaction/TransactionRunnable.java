@@ -37,7 +37,7 @@ class TransactionRunnable implements Runnable, TransactionCallback<Object> {
 
     private final boolean readOnly;
 
-    private final List<Runnable> runnables = new ArrayList<Runnable>();
+    private final List<Runnable> runnables = new ArrayList<>();
 
     public TransactionRunnable(TransactionStrategy transactionStrategy, boolean readOnly) {
         this.transactionStrategy = transactionStrategy;

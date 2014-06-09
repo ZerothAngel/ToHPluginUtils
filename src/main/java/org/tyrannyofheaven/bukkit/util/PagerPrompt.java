@@ -29,7 +29,7 @@ class PagerPrompt implements Prompt {
     // However as a consequence, ConversationFactories are not reusable.
     // Maybe if the Conversation's first prompt were cloned...
 
-    private final List<String> lines = new LinkedList<String>();
+    private final List<String> lines = new LinkedList<>();
 
     private final int linesPerPage;
 

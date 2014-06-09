@@ -88,11 +88,11 @@ public class MojangUuidResolver implements UuidResolver {
         if (usernames == null)
             throw new IllegalArgumentException("usernames cannot be null");
 
-        Map<String, UuidDisplayName> result = new LinkedHashMap<String, UuidDisplayName>();
+        Map<String, UuidDisplayName> result = new LinkedHashMap<>();
 
         final int BATCH_SIZE = 97; // Should be <= Mojang's AccountsClient's PROFILES_PER_REQUEST (100)
 
-        for (List<String> sublist : Lists.partition(new ArrayList<String>(usernames), BATCH_SIZE)) {
+        for (List<String> sublist : Lists.partition(new ArrayList<>(usernames), BATCH_SIZE)) {
             List<Profile> searchResult = searchProfiles(sublist);
             for (Profile profile : searchResult) {
                 String username = profile.getName();
@@ -175,7 +175,7 @@ public class MojangUuidResolver implements UuidResolver {
     }
 
     private List<Profile> convertResponse(JSONArray profiles) {
-        List<Profile> result = new ArrayList<Profile>();
+        List<Profile> result = new ArrayList<>();
         for (Object obj : profiles) {
             JSONObject jsonProfile = (JSONObject)obj;
             String id = (String)jsonProfile.get("id");

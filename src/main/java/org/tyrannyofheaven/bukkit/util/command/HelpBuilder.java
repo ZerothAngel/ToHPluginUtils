@@ -42,7 +42,7 @@ public class HelpBuilder {
 
     private Object handler;
 
-    private final List<String> outputLines = new ArrayList<String>();
+    private final List<String> outputLines = new ArrayList<>();
 
     private final Set<String> possibleCommands;
 

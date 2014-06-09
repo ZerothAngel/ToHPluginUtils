@@ -134,7 +134,7 @@ final class InvocationChain {
     // Returns a copy of this chain
     InvocationChain copy() {
         // Feh to clone()
-        return new InvocationChain(new LinkedList<CommandInvocation>(chain));
+        return new InvocationChain(new LinkedList<>(chain));
     }
 
     void pop() {

@@ -56,15 +56,15 @@ final class HandlerExecutor<T extends Plugin> {
 
     private final UsageOptions usageOptions;
 
-    private final Map<String, CommandMetaData> commandMap = new HashMap<String, CommandMetaData>();
+    private final Map<String, CommandMetaData> commandMap = new HashMap<>();
 
-    private final Map<Object, HandlerExecutor<T>> subCommandMap = new WeakHashMap<Object, HandlerExecutor<T>>();
+    private final Map<Object, HandlerExecutor<T>> subCommandMap = new WeakHashMap<>();
 
-    private final Set<String> commandList = new TreeSet<String>();
+    private final Set<String> commandList = new TreeSet<>();
 
     static {
         // Build map of primitives to primitive wrappers
-        Map<Class<?>, Class<?>> wrappers = new HashMap<Class<?>, Class<?>>();
+        Map<Class<?>, Class<?>> wrappers = new HashMap<>();
         wrappers.put(Boolean.TYPE, Boolean.class);
         wrappers.put(Byte.TYPE, Byte.class);
         wrappers.put(Short.TYPE, Short.class);
@@ -75,7 +75,7 @@ final class HandlerExecutor<T extends Plugin> {
         primitiveWrappers = Collections.unmodifiableMap(wrappers);
 
         // Build set of supported parameter types
-        Set<Class<?>> types = new HashSet<Class<?>>();
+        Set<Class<?>> types = new HashSet<>();
         types.add(String.class);
         for (Map.Entry<Class<?>, Class<?>> me : primitiveWrappers.entrySet()) {
             types.add(me.getKey());
@@ -138,7 +138,7 @@ final class HandlerExecutor<T extends Plugin> {
 
                 if (command != null) {
                     // Handle @Command
-                    List<MethodParameter> options = new ArrayList<MethodParameter>();
+                    List<MethodParameter> options = new ArrayList<>();
 
                     boolean hasLabel = false;
                     boolean hasRest = false; // There can be only one!
@@ -229,7 +229,7 @@ final class HandlerExecutor<T extends Plugin> {
                     // Flags (-f, --flag) can appear anywhere.
                     // Optional arguments must follow positional ones.
                     // Nullable arguments must follow non-nullable ones.
-                    List<MethodParameter> reversed = new ArrayList<MethodParameter>(options);
+                    List<MethodParameter> reversed = new ArrayList<>(options);
                     Collections.reverse(reversed); // easier to do this in reverse
                     boolean positional = false; // true if positional arguments have started
                     boolean nonNullable = false; // true if non-nullable arguments have started
@@ -282,7 +282,7 @@ final class HandlerExecutor<T extends Plugin> {
     // Given parsed arguments and metadata, create an argument list suitable
     // for reflective invoke.
     private Object[] buildMethodArgs(CommandMetaData cmd, CommandSender sender, ParsedArgs pa, String label, InvocationChain invChain, CommandSession session, Set<String> possibleCommands) throws Throwable {
-        List<Object> result = new ArrayList<Object>(cmd.getParameters().size());
+        List<Object> result = new ArrayList<>(cmd.getParameters().size());
         for (MethodParameter mp : cmd.getParameters()) {
             if (mp instanceof SpecialParameter) {
                 SpecialParameter sp = (SpecialParameter)mp;
@@ -489,7 +489,7 @@ final class HandlerExecutor<T extends Plugin> {
         HandlerExecutor<T> he = subCommandMap.get(handler);
         if (he == null) {
             // No HandlerExecutor yet, create a new one
-            he = new HandlerExecutor<T>(plugin, usageOptions, handler);
+            he = new HandlerExecutor<>(plugin, usageOptions, handler);
             subCommandMap.put(handler, he);
         }
         return he;
@@ -578,7 +578,7 @@ final class HandlerExecutor<T extends Plugin> {
 
         // Is it the start of a flag?
         if (consumedAll && !pa.isParsedPositional() && !OptionMetaData.isArgument(query)) {
-            List<String> source = new ArrayList<String>();
+            List<String> source = new ArrayList<>();
             source.add("--"); // explicit end of flags
             for (OptionMetaData omd : cmd.getFlagOptions()) {
                 boolean found = false;
@@ -595,14 +595,14 @@ final class HandlerExecutor<T extends Plugin> {
                 source.addAll(Arrays.asList(omd.getNames()));
             }
 
-            List<String> result = new ArrayList<String>();
+            List<String> result = new ArrayList<>();
             StringUtil.copyPartialMatches(query, source, result);
             return result;
         }
 
         if (missingValue != null) {
             // Use missing value's type to get candidates
-            List<String> result = new ArrayList<String>();
+            List<String> result = new ArrayList<>();
             addCompletions(typeCompleterRegistry, missingValue, sender, query, result);
             return result;
         }
@@ -610,7 +610,7 @@ final class HandlerExecutor<T extends Plugin> {
         // Check if sub-command
         if (cmd.getMethod().getReturnType() != Void.TYPE) {
             // Sub-command, attempt to execute it. It better not have side-effects!
-            Set<String> possibleCommands = new HashSet<String>();
+            Set<String> possibleCommands = new HashSet<>();
             Object[] methodArgs = buildMethodArgs(cmd, sender, pa, label, invChain, session, possibleCommands);
             Object nextHandler;
             try {
@@ -635,14 +635,14 @@ final class HandlerExecutor<T extends Plugin> {
             }
             
             // Relying on HelpBuilder to have filled out the blanks
-            List<String> result = new ArrayList<String>();
+            List<String> result = new ArrayList<>();
             StringUtil.copyPartialMatches(query, possibleCommands, result);
             return result;
         }
 
         // Have a varargs completer?
         if (cmd.getCompleter() != null) {
-            List<String> result = new ArrayList<String>();
+            List<String> result = new ArrayList<>();
 
             // Determine suitable TypeCompleter
             TypeCompleter typeCompleter = null;
@@ -692,7 +692,7 @@ final class HandlerExecutor<T extends Plugin> {
             // Use values based on type.
             if (omd.getType() == Boolean.class || omd.getType() == Boolean.TYPE) {
                 // Easy one
-                List<String> source = new ArrayList<String>();
+                List<String> source = new ArrayList<>();
                 source.add("true");
                 source.add("false");
                 StringUtil.copyPartialMatches(partial, source, destination);

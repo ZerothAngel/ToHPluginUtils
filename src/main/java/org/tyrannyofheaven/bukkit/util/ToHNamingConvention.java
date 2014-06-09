@@ -34,7 +34,7 @@ import com.avaje.ebean.config.UnderscoreNamingConvention;
  */
 public class ToHNamingConvention extends UnderscoreNamingConvention {
 
-    private final Map<String, String> tableNames = new HashMap<String, String>();
+    private final Map<String, String> tableNames = new HashMap<>();
 
     private final String defaultSchemaTableName;
 

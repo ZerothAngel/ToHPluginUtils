@@ -90,10 +90,10 @@ final class CommandMetaData {
         this.rest = rest;
         this.completer = completer;
 
-        this.parameters = Collections.unmodifiableList(new ArrayList<MethodParameter>(options));
+        this.parameters = Collections.unmodifiableList(new ArrayList<>(options));
         
-        List<OptionMetaData> flagOptions = new ArrayList<OptionMetaData>();
-        List<OptionMetaData> positionalArguments = new ArrayList<OptionMetaData>();
+        List<OptionMetaData> flagOptions = new ArrayList<>();
+        List<OptionMetaData> positionalArguments = new ArrayList<>();
         for (MethodParameter mp : this.parameters) {
             if (mp instanceof OptionMetaData) {
                 OptionMetaData omd = (OptionMetaData)mp;

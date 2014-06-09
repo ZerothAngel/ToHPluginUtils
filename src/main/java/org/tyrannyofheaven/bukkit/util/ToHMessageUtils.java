@@ -41,7 +41,7 @@ public class ToHMessageUtils {
     private static final int LINES_PER_PAGE = ChatPaginator.CLOSED_CHAT_PAGE_HEIGHT;
 
     // Cache for colorize(). Feeling kinda iffy, but Strings are immutable...
-    private static final ConcurrentMap<String, String> colorizeCache = new ConcurrentHashMap<String, String>();
+    private static final ConcurrentMap<String, String> colorizeCache = new ConcurrentHashMap<>();
 
     private ToHMessageUtils() {
         throw new AssertionError("Don't instantiate me!");
@@ -273,7 +273,7 @@ public class ToHMessageUtils {
 
         if (sender instanceof Player) {
             // Word wrap long lines
-            List<String> outputLines = new ArrayList<String>(lines.size());
+            List<String> outputLines = new ArrayList<>(lines.size());
             for (String line : lines) {
                 String[] wrapped = ChatPaginator.wordWrap(line, ChatPaginator.GUARANTEED_NO_WRAP_CHAT_PAGE_WIDTH);
                 for (String wrap : wrapped)

@@ -157,7 +157,7 @@ public class ToHFileUtils {
             InputStream commentsInput = plugin.getClass().getResourceAsStream(commentsName);
             if (commentsInput != null) {
                 Configuration comments = YamlConfiguration.loadConfiguration(commentsInput);
-                Map<String, String> commentsMap = new HashMap<String, String>();
+                Map<String, String> commentsMap = new HashMap<>();
                 for (Map.Entry<String, Object> entry : comments.getValues(false).entrySet()) {
                     commentsMap.put(entry.getKey(), entry.getValue().toString());
                 }

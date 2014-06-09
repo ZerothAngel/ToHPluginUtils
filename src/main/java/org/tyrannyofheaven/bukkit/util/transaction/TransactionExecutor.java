@@ -27,7 +27,7 @@ class TransactionExecutor implements Executor {
 
     private final TransactionStrategy transactionStrategy;
 
-    private final ThreadLocal<TransactionRunnable> currentTransactionRunnableHolder = new ThreadLocal<TransactionRunnable>();
+    private final ThreadLocal<TransactionRunnable> currentTransactionRunnableHolder = new ThreadLocal<>();
 
     public TransactionExecutor(TransactionStrategy transactionStrategy) {
         this.transactionStrategy = transactionStrategy;

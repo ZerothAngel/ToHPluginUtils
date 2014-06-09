@@ -50,7 +50,7 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
 
     private UsageOptions usageOptions = new DefaultUsageOptions();
 
-    private final Map<String, TypeCompleter> typeCompleterRegistry = new HashMap<String, TypeCompleter>();
+    private final Map<String, TypeCompleter> typeCompleterRegistry = new HashMap<>();
 
     private boolean quoteAware = false;
 
@@ -70,7 +70,7 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
 
         this.plugin = plugin;
 
-        rootHandlerExecutor = new HandlerExecutor<T>(plugin, usageOptions, handlers);
+        rootHandlerExecutor = new HandlerExecutor<>(plugin, usageOptions, handlers);
         
         // Register default TypeCompleters
         registerTypeCompleter("constant", new ConstantTypeCompleter());
@@ -219,7 +219,7 @@ public class ToHCommandExecutor<T extends Plugin> implements TabExecutor {
     }
 
     private String[] split(String input, boolean complete) {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
 
         SplitState state = SplitState.NORMAL;
         StringBuilder current = new StringBuilder();

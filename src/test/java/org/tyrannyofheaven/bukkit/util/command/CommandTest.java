@@ -39,7 +39,7 @@ public class CommandTest {
 
     private final StringBuilder out = new StringBuilder();
     
-    private final Set<String> permissions = new HashSet<String>();
+    private final Set<String> permissions = new HashSet<>();
 
     private final CommandSender dummySender;
 
@@ -116,7 +116,7 @@ public class CommandTest {
             public void sendMessage(String[] arg0) {
             }
         };
-        he = new HandlerExecutor<MyPlugin>(plugin, new MyHandler());
+        he = new HandlerExecutor<>(plugin, new MyHandler());
     }
 
     @Before
@@ -366,8 +366,8 @@ public class CommandTest {
     }
 
     private void testCompletions(List<String> actual, String... expected) throws Throwable {
-        Set<String> actualSet = new HashSet<String>(actual);
-        Set<String> expectedSet = new HashSet<String>(Arrays.asList(expected));
+        Set<String> actualSet = new HashSet<>(actual);
+        Set<String> expectedSet = new HashSet<>(Arrays.asList(expected));
         Assert.assertEquals(expectedSet, actualSet);
     }
 

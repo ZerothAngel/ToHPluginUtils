@@ -53,7 +53,7 @@ public class PermissionException extends RuntimeException {
      * @param permissions name of permissions
      */
     public PermissionException(boolean all, boolean checkNegations, String... permissions) {
-        this.permissions = Collections.unmodifiableList(new ArrayList<String>(Arrays.asList(permissions)));
+        this.permissions = Collections.unmodifiableList(new ArrayList<>(Arrays.asList(permissions)));
         this.all = all;
         this.checkNegations = checkNegations;
     }

@@ -30,7 +30,7 @@ import java.util.Map;
  */
 final class ParsedArgs {
 
-    private final Map<String, String> options = new HashMap<String, String>();
+    private final Map<String, String> options = new HashMap<>();
 
     private String[] rest = new String[0];
 
@@ -86,7 +86,7 @@ final class ParsedArgs {
                 break;
             }
             else {
-                List<String> flags = new LinkedList<String>();
+                List<String> flags = new LinkedList<>();
 
                 String flagArg = arg.substring(1);
                 if (!flagArg.startsWith("-")) {

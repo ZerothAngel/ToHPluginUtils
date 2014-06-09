@@ -30,7 +30,7 @@ import org.bukkit.plugin.Plugin;
 public class CommandReader {
 
     // Used to hold the batch processing abort flag
-    private static final ThreadLocal<Boolean> abortFlags = new ThreadLocal<Boolean>();
+    private static final ThreadLocal<Boolean> abortFlags = new ThreadLocal<>();
 
     /**
      * Execute commands from a file. Commands will be echoed back to the sender.
@@ -108,7 +108,7 @@ public class CommandReader {
      * @throws IOException upon I/O error
      */
     public static boolean read(Server server, CommandSender sender, InputStream input, boolean echo, Plugin... plugins) throws IOException {
-        List<CommandCall> calls = new ArrayList<CommandCall>();
+        List<CommandCall> calls = new ArrayList<>();
 
         // Read entire stream before executing anything
         BufferedReader in = new BufferedReader(new InputStreamReader(input));

@@ -291,7 +291,7 @@ public class ToHDatabaseUtils {
         // Horrible, horrible
         DdlGenContext ctx = new DdlGenContext(spiEbeanServer.getDatabasePlatform(), namingConvention);
         CreateTableVisitor create = new CreateTableVisitor(ctx);
-        List<BeanDescriptor<?>> descriptors = new ArrayList<BeanDescriptor<?>>(1);
+        List<BeanDescriptor<?>> descriptors = new ArrayList<>(1);
         descriptors.add(spiEbeanServer.getBeanDescriptor(ToHSchemaVersion.class));
         VisitorUtil.visit(descriptors, create);
         
