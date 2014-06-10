@@ -136,11 +136,8 @@ public class ToHFileUtils {
                 throw e;
             // Otherwise, ignore...
         }
-        catch (IOException e) {
+        catch (IOException | InvalidConfigurationException e) {
             ToHLoggingUtils.error(plugin, "Error reading configuration %s", configFile, e);
-        }
-        catch (InvalidConfigurationException e) {
-            ToHLoggingUtils.error(plugin, "Error parsing configuration %s", configFile, e);
         }
 
         // Set defaults if present

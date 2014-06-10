@@ -85,10 +85,7 @@ public class AsyncTransactionStrategy implements TransactionStrategy {
                 }
             }
         }
-        catch (Error e) {
-            throw e;
-        }
-        catch (RuntimeException e) {
+        catch (Error | RuntimeException e) {
             // No need to wrap these, just re-throw
             throw e;
         }

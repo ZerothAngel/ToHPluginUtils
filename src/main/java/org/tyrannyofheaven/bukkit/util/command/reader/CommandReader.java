@@ -164,10 +164,7 @@ public class CommandReader {
                     if (abortFlags.get() != null && abortFlags.get())
                         return false;
                 }
-                catch (Error e) {
-                    throw e;
-                }
-                catch (RuntimeException e) {
+                catch (Error | RuntimeException e) {
                     throw e;
                 }
                 catch (Throwable t) {

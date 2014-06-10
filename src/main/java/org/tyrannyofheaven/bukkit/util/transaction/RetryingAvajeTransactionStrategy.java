@@ -114,14 +114,11 @@ public class RetryingAvajeTransactionStrategy implements TransactionStrategy {
                     getEbeanServer().endTransaction();
                 }
             }
-            catch (Error e) {
-                throw e;
-            }
             catch (PersistenceException e) {
                 savedPE = e;
                 continue;
             }
-            catch (RuntimeException e) {
+            catch (Error | RuntimeException e) {
                 // No need to wrap these, just re-throw
                 throw e;
             }
