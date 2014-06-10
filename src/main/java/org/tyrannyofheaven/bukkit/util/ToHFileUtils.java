@@ -22,7 +22,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -33,6 +35,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.tyrannyofheaven.bukkit.util.configuration.AnnotatedYamlConfiguration;
+
+import com.google.common.base.Charsets;
 
 /**
  * File utilities.
@@ -144,8 +148,13 @@ public class ToHFileUtils {
         if (defaultsName != null) {
             InputStream defaultsInput = plugin.getClass().getResourceAsStream(defaultsName);
             if (defaultsInput != null) {
-                Configuration defaults = YamlConfiguration.loadConfiguration(defaultsInput);
-                config.setDefaults(defaults);
+                try (Reader reader = new InputStreamReader(defaultsInput, Charsets.UTF_8)) {
+                    Configuration defaults = YamlConfiguration.loadConfiguration(reader);
+                    config.setDefaults(defaults);
+                }
+                catch (IOException e) {
+                    // Ignored (thrown by close)
+                }
             }
         }
 
@@ -153,12 +162,17 @@ public class ToHFileUtils {
         if (commentsName != null) {
             InputStream commentsInput = plugin.getClass().getResourceAsStream(commentsName);
             if (commentsInput != null) {
-                Configuration comments = YamlConfiguration.loadConfiguration(commentsInput);
-                Map<String, String> commentsMap = new HashMap<>();
-                for (Map.Entry<String, Object> entry : comments.getValues(false).entrySet()) {
-                    commentsMap.put(entry.getKey(), entry.getValue().toString());
+                try (Reader reader = new InputStreamReader(commentsInput, Charsets.UTF_8)) {
+                    Configuration comments = YamlConfiguration.loadConfiguration(reader);
+                    Map<String, String> commentsMap = new HashMap<>();
+                    for (Map.Entry<String, Object> entry : comments.getValues(false).entrySet()) {
+                        commentsMap.put(entry.getKey(), entry.getValue().toString());
+                    }
+                    config.setComments(commentsMap);
                 }
-                config.setComments(commentsMap);
+                catch (IOException e) {
+                    // Ignored (thrown by close)
+                }
             }
         }
 
