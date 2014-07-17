@@ -86,4 +86,18 @@ public class CascadingUuidResolver implements UuidResolver {
         }
     }
 
+    @Override
+    public void invalidate(String username) {
+        for (UuidResolver uuidResolver : uuidResolvers) {
+            uuidResolver.invalidate(username);
+        }
+    }
+
+    @Override
+    public void invalidateAll() {
+        for (UuidResolver uuidResolver : uuidResolvers) {
+            uuidResolver.invalidateAll();
+        }
+    }
+
 }

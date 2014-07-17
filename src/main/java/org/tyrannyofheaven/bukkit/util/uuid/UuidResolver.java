@@ -65,4 +65,17 @@ public interface UuidResolver {
      */
     public void preload(String username, UUID uuid);
 
+    /**
+     * Hint to the underlying implementation that the cache entry for the
+     * given username should be invalidated.
+     * 
+     * @param username the username
+     */
+    public void invalidate(String username);
+
+    /**
+     * Hint to the underlying implementation to invalidate all cache entries.
+     */
+    public void invalidateAll();
+
 }
