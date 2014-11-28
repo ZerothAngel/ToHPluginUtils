@@ -29,9 +29,9 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.google.common.base.Charsets;
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 
 public class MojangUuidResolver implements UuidResolver {
@@ -40,7 +40,7 @@ public class MojangUuidResolver implements UuidResolver {
 
     private static final UuidDisplayName NULL_UDN = new UuidDisplayName(UUID.randomUUID(), "NOT FOUND");
 
-    private final Cache<String, UuidDisplayName> cache;
+    private final LoadingCache<String, UuidDisplayName> cache;
 
     public MojangUuidResolver(int cacheMaxSize, long cacheTtl, TimeUnit cacheTtlUnits) {
         cache = CacheBuilder.newBuilder()
